@@ -1,17 +1,19 @@
-# blood_test_mobile
+# Laboratory_Management_Mobile
 
-A new Flutter project.
+Dự án ứng dụng di động Flutter (hỗ trợ Android & iOS) cho hệ thống quản lý phòng xét nghiệm y khoa (Laboratory Management System).
 
-## Getting Started
+## Tính năng chính
+- Dành cho **Customer** (Khách hàng): Đặt lịch hẹn xét nghiệm máu, chọn gói dịch vụ (bundles/catalogs), theo dõi lịch sử và thanh toán qua VNPay.
+- Dành cho **Lab Staff** (Nhân viên phòng Lab): Xem lịch hẹn, cập nhật tiến độ, ghi nhận kết quả xét nghiệm.
 
-This project is a starting point for a Flutter application.
+## Bắt đầu dự án
 
-A few resources to get you started if this is your first Flutter project:
+Dự án này sử dụng Flutter SDK.
+
+Các tài liệu hữu ích để bắt đầu với Flutter:
 
 - [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
 - [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Để biết thêm chi tiết về hướng dẫn phát triển ứng dụng di động Flutter, hãy xem [tài liệu trực tuyến](https://docs.flutter.dev/).
