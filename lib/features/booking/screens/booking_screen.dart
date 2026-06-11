@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../../config/app_theme.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/auth_utils.dart';
@@ -33,8 +32,15 @@ class _BookingScreenState extends State<BookingScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded),
           onPressed: () {
-            if (_currentStep > 0) setState(() => _currentStep--);
-            else context.pop();
+            if (_currentStep > 0) {
+              setState(() => _currentStep--);
+            } else {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            }
           },
         ),
       ),
