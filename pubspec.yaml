@@ -1,0 +1,61 @@
+name: blood_test_mobile
+description: "Ứng dụng quản lý đặt lịch xét nghiệm máu"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP Client
+  dio: ^5.4.3+1
+
+  # Secure Storage (thay localStorage)
+  flutter_secure_storage: ^9.2.2
+
+  # Navigation
+  go_router: ^14.6.2
+
+  # State Management
+  provider: ^6.1.2
+
+  # JWT Decode
+  jwt_decoder: ^2.0.1
+
+  # Image loading
+  cached_network_image: ^3.4.1
+
+  # HTML renderer (cho Blog content)
+  flutter_html: ^3.0.0-beta.2
+
+  # WebView (cho VNPay payment)
+  webview_flutter: ^4.10.0
+
+  # Date/time formatting
+  intl: ^0.19.0
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # Toast/Snackbar
+  fluttertoast: ^8.2.12
+
+  # URL launcher (open external links)
+  url_launcher: ^6.3.1
+
+  # Shimmer loading effect
+  shimmer: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
