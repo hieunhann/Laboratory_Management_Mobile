@@ -36,21 +36,35 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       // MOCK LOGIN ĐỂ TEST NHANH (Khôi phục nguyên trạng khi yêu cầu)
-      if ((username == 'customer' || username == 'labstaff') && password == '123') {
+      if ((username == 'customer' || username == 'labstaff') &&
+          password == '123') {
         final role = username == 'customer' ? 'Customer' : 'LabUser';
         final sub = username == 'customer' ? 'cust_mock_123' : 'staff_mock_123';
-        final name = username == 'customer' ? 'Khách Hàng Thử Nghiệm' : 'Kỹ Thuật Viên Thử Nghiệm';
+        final name = username == 'customer'
+            ? 'Khách Hàng Thử Nghiệm'
+            : 'Kỹ Thuật Viên Thử Nghiệm';
         final email = '$username@gmail.com';
-        
-        final header = base64Url.encode(utf8.encode(jsonEncode({"alg": "HS256", "typ": "JWT"})));
-        final payload = base64Url.encode(utf8.encode(jsonEncode({
-          "sub": sub,
-          "role": role,
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": role,
-          "exp": DateTime.now().add(const Duration(days: 30)).millisecondsSinceEpoch ~/ 1000
-        })));
+
+        final header = base64Url.encode(
+          utf8.encode(jsonEncode({"alg": "HS256", "typ": "JWT"})),
+        );
+        final payload = base64Url.encode(
+          utf8.encode(
+            jsonEncode({
+              "sub": sub,
+              "role": role,
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role":
+                  role,
+              "exp":
+                  DateTime.now()
+                      .add(const Duration(days: 30))
+                      .millisecondsSinceEpoch ~/
+                  1000,
+            }),
+          ),
+        );
         final mockToken = "$header.$payload.signature";
-        
+
         await SecureStorageService.saveAccessToken(mockToken);
         final user = UserModel(
           userId: sub,
@@ -60,7 +74,7 @@ class AuthProvider extends ChangeNotifier {
           role: role,
         );
         await SecureStorageService.saveUserData(jsonEncode(user.toJson()));
-        
+
         _isAuthenticated = true;
         _role = role;
         _currentUser = user;
@@ -126,7 +140,9 @@ class AuthProvider extends ChangeNotifier {
 
   // ─── Change Password ──────────────────────────────────────
   Future<bool> changePassword(
-      String currentPassword, String newPassword) async {
+    String currentPassword,
+    String newPassword,
+  ) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -154,11 +170,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── Parse error message ─────────────────────────────────
+  // ─── Parse error message. ─────────────────────────────────
   String _parseError(dynamic e) {
     if (e.toString().contains('SocketException') ||
         e.toString().contains('Connection')) {
-      return 'Không kết nối được server. Kiểm tra mạng!';
+      return 'Không kết nối được server. Vui lòng kiểm tra mạng!';
     }
     try {
       final resp = (e as dynamic).response?.data;
