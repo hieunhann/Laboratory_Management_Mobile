@@ -35,19 +35,39 @@ class BookingRepository {
 
   // ─── Catalogs ─────────────────────────────────────────────
   static Future<List<CatalogModel>> getAllCatalogs() async {
-    final response = await ApiClient.get('testorder/api/TestCatalog',
-        params: {'pageNumber': 1, 'pageSize': 100});
-    final data = response.data;
-    List items = [];
-    if (data is Map) {
-      items = data['catalogDTOs'] ?? data['items'] ?? data['data'] ?? [];
-    } else if (data is List) {
-      items = data;
+    try {
+      final response = await ApiClient.get('testorder/api/TestCatalog',
+          params: {'pageNumber': 1, 'pageSize': 100});
+      final data = response.data;
+      List items = [];
+      if (data is Map) {
+        items = data['catalogDTOs'] ?? data['items'] ?? data['data'] ?? [];
+      } else if (data is List) {
+        items = data;
+      }
+      if (items.isNotEmpty) {
+        return items
+            .map((e) => CatalogModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (_) {
+      // Fallback: nếu TestCatalog lỗi (500), lấy catalog từ bundles
     }
-    return items
-        .map((e) => CatalogModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    // ── Fallback: extract catalogs từ CatalogBundle ─────────
+    try {
+      final bundles = await getAllBundles();
+      final Map<dynamic, CatalogModel> uniqueCatalogs = {};
+      for (final bundle in bundles) {
+        for (final catalog in bundle.catalogs ?? []) {
+          uniqueCatalogs[catalog.catalogId] = catalog;
+        }
+      }
+      return uniqueCatalogs.values.toList();
+    } catch (_) {
+      return [];
+    }
   }
+
 
   // ─── Appointment Slots ────────────────────────────────────
   static Future<dynamic> getAppointmentSlotCounts() async {

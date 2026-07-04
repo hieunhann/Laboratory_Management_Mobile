@@ -59,10 +59,13 @@ class CatalogModel {
 
   factory CatalogModel.fromJson(Map<String, dynamic> json) {
     return CatalogModel(
+      // API trả về 'testName', fallback 'catalogName' hoặc 'name'
       catalogId: json['catalogId'] ?? json['id'],
-      catalogName: json['catalogName']?.toString() ?? json['name']?.toString(),
+      catalogName: json['testName']?.toString()
+          ?? json['catalogName']?.toString()
+          ?? json['name']?.toString(),
       description: json['description']?.toString(),
-      price: json['price'] as num?,
+      price: (json['price'] as num?)?.toDouble(),
       isActive: json['isActive'] as bool?,
       parameters: json['parameters'] as List<dynamic>?,
     );

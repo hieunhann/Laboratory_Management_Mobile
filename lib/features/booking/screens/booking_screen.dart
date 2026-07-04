@@ -987,27 +987,34 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       final createdBy = await AuthUtils.getUserId() ?? '';
       
       final source = items['source'];
-      final bundleId = source == 'package' ? items['package']['bundleId'] ?? 0 : 0;
+      // bundleId phải là int hoặc null
+      final bundleId = source == 'package'
+          ? int.tryParse(items['package']['bundleId']?.toString() ?? '0') ?? 0
+          : null;
       
-      List<dynamic> catalogs = [];
+      // catalogs phải là List<int>
+      List<int> catalogs = [];
       if (source == 'catalog') {
-        catalogs = (items['items'] as List).map((it) => it['catalogId']).toList();
+        catalogs = (items['items'] as List)
+            .map((it) => int.tryParse(it['catalogId']?.toString() ?? '0') ?? 0)
+            .where((id) => id > 0)
+            .toList();
       }
 
       final rawDate = dateTime['date'] as String;
       final dateStr = rawDate.split('T')[0];
       
       final rawTime = dateTime['time'] as String;
-      final timeBlock = rawTime.contains(':00') ? rawTime : '$rawTime:00';
+      final timeBlock = rawTime.contains(':') ? rawTime : '$rawTime:00';
 
       final payload = {
-        'patientId': patientId,
-        'patientPhoneNumber': phone,
-        'patientName': fullName,
-        'patientEmail': email,
+        'patientId': patientId.toString(),
+        'patientPhoneNumber': phone.toString(),
+        'patientName': fullName.toString(),
+        'patientEmail': email.toString(),
         'createdBy': createdBy,
-        'bundleId': bundleId,
-        'catalogs': catalogs,
+        if (bundleId != null && bundleId > 0) 'bundleId': bundleId,
+        if (catalogs.isNotEmpty) 'catalogs': catalogs,
         'slotDTO': {
           'appointmentDate': dateStr,
           'timeBlock': timeBlock,
@@ -1016,7 +1023,11 @@ class _ConfirmStepState extends State<_ConfirmStep> {
 
       final response = await BookingRepository.createBooking(payload);
       
-      final newBookingId = response['bookingId']?.toString() ?? response['id']?.toString() ?? response['data']?.toString();
+      // BE trả về instancesCode (UUID) thay vì bookingId
+      final newBookingId = response['instancesCode']?.toString()
+          ?? response['bookingId']?.toString()
+          ?? response['id']?.toString()
+          ?? response['data']?.toString();
       
       if (newBookingId != null && newBookingId.isNotEmpty) {
         widget.onNext(newBookingId);
@@ -1033,6 +1044,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       if (mounted) setState(() => _loading = false);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
