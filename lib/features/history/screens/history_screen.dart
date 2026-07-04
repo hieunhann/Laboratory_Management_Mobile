@@ -26,21 +26,56 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _loadHistory() async {
     setState(() { _loading = true; _error = null; });
     try {
-      // Lấy booking history qua patient endpoint
+      // Bước 1: Lấy danh sách patient của user để lấy patientId
+      final patientRes = await ApiClient.get(
+        'patient/v1/patients/mine',
+        params: {'page': 1, 'pageSize': 10},
+      );
+      final patientData = patientRes.data;
+      final patientList = patientData['items'] ?? patientData['data'] ?? [];
+
+      if (patientList.isEmpty) {
+        setState(() { _bookings = []; _loading = false; });
+        return;
+      }
+
+      // Lấy patientId đầu tiên (hoặc gom tất cả)
+      final patientId = patientList[0]['patientId']?.toString()
+          ?? patientList[0]['id']?.toString();
+
+      if (patientId == null) {
+        setState(() { _bookings = []; _loading = false; });
+        return;
+      }
+
+      // Bước 2: Lấy booking theo patientId
       final response = await ApiClient.get(
-        'testorder/api/Booking',
-        params: {'pageNumber': 1, 'pageSize': 50},
+        'testorder/api/Booking/patient',
+        params: {
+          'patientId': patientId,
+          'pageNumber': 1,
+          'pageSize': 50,
+        },
       );
       final data = response.data;
-      List items = data['items'] ?? data['data'] ?? data ?? [];
+      List items = [];
+      if (data is Map) {
+        items = data['items'] ?? data['data'] ?? [];
+      } else if (data is List) {
+        items = data;
+      }
+
       setState(() {
-        _bookings = items.map((e) => BookingModel.fromJson(e as Map<String, dynamic>)).toList();
+        _bookings = items
+            .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
+            .toList();
         _loading = false;
       });
     } catch (e) {
-      setState(() { _error = 'Không tải được lịch sử'; _loading = false; });
+      setState(() { _error = 'Không tải được lịch sử: $e'; _loading = false; });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

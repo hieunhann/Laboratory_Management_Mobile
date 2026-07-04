@@ -74,7 +74,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         _obscureNew, () => setState(() => _obscureNew = !_obscureNew),
                         validator: (v) {
                           if (v?.isEmpty == true) return 'Bắt buộc';
-                          if (v!.length < 6) return 'Tối thiểu 6 ký tự';
+                          if (v!.length < 8) return 'Tối thiểu 8 ký tự';
+                          if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Phải có ít nhất 1 chữ hoa';
+                          if (!RegExp(r'[0-9]').hasMatch(v)) return 'Phải có ít nhất 1 chữ số';
+                          if (!RegExp(r'[!@#\$%^&*]').hasMatch(v)) return 'Phải có ký tự đặc biệt (!@#\$%^&*)';
                           return null;
                         }),
                     const Divider(),

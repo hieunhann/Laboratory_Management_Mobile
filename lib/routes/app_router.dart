@@ -19,6 +19,7 @@ import '../features/lab_staff/screens/lab_staff_landing.dart';
 import '../features/lab_staff/screens/lab_staff_dashboard.dart';
 import '../features/lab_staff/screens/appointment_schedule_screen.dart';
 import '../shared/widgets/main_scaffold.dart';
+import '../shared/models/patient_model.dart';
 
 class AppRouter {
   static GoRouter router(AuthProvider authProvider) {
@@ -38,6 +39,7 @@ class AppRouter {
           '/history',
           '/profile',
           '/create-profile',
+          '/profile/edit',
           '/change-password',
           '/medical-record',
           '/lab-staff',
@@ -121,6 +123,13 @@ class AppRouter {
           path: '/create-profile',
           pageBuilder: (c, s) =>
               _slide(c, s, const CreateProfileScreen()),
+        ),
+        GoRoute(
+          path: '/profile/edit',
+          pageBuilder: (c, s) {
+            final patient = s.extra as PatientModel?;
+            return _slide(c, s, CreateProfileScreen(existingPatient: patient));
+          },
         ),
         GoRoute(
           path: '/change-password',
