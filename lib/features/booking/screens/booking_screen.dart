@@ -1004,8 +1004,12 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       final rawDate = dateTime['date'] as String;
       final dateStr = rawDate.split('T')[0];
       
+      // Backend nhận TimeOnly dạng HH:mm:ss (vd "08:00:00"); chuẩn hoá mọi input ("8:00", "08:00") về dạng này
       final rawTime = dateTime['time'] as String;
-      final timeBlock = rawTime.contains(':') ? rawTime : '$rawTime:00';
+      final tParts = rawTime.split(':');
+      final hh = tParts[0].padLeft(2, '0');
+      final mm = tParts.length > 1 ? tParts[1].padLeft(2, '0') : '00';
+      final timeBlock = '$hh:$mm:00';
 
       final payload = {
         'patientId': patientId.toString(),
