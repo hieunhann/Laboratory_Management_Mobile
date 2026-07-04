@@ -38,6 +38,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
+      // Backend nhan Gender (byte 0-3) va BloodType (byte 0-8), khong nhan chuoi -> map sang so
+      const genderCodes = {'Male': 1, 'Female': 2};
+      const bloodTypeCodes = {
+        'A_POSITIVE': 1, 'A_NEGATIVE': 2, 'B_POSITIVE': 3, 'B_NEGATIVE': 4,
+        'AB_POSITIVE': 5, 'AB_NEGATIVE': 6, 'O_POSITIVE': 7, 'O_NEGATIVE': 8,
+      };
       final patient = await PatientRepository.createProfile({
         'fullName': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
@@ -46,8 +52,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         'address': _addressCtrl.text.trim(),
         'citizenId': _citizenCtrl.text.trim(),
         'insuranceNumber': _insuranceCtrl.text.trim(),
-        'gender': _gender,
-        'bloodType': _bloodType,
+        'gender': genderCodes[_gender] ?? 0,
+        'bloodType': bloodTypeCodes[_bloodType] ?? 0,
       });
       if (patient != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

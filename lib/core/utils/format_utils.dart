@@ -49,6 +49,9 @@ class FormatUtils {
       'AB_NEGATIVE': 'AB-',
       'O_POSITIVE': 'O+',
       'O_NEGATIVE': 'O-',
+      // backend tra ve so (byte enum): 1=A+ ... 8=O-
+      '0': '', '1': 'A+', '2': 'A-', '3': 'B+', '4': 'B-',
+      '5': 'AB+', '6': 'AB-', '7': 'O+', '8': 'O-',
     };
     return bloodTypes[type] ?? type ?? '';
   }
@@ -58,11 +61,15 @@ class FormatUtils {
     switch (gender?.toLowerCase()) {
       case 'male':
       case 'nam':
+      case '1':
         return 'Nam';
       case 'female':
       case 'nu':
       case 'nữ':
+      case '2':
         return 'Nữ';
+      case '3':
+        return 'Khác';
       default:
         return gender ?? '';
     }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../config/app_theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../shared/models/patient_model.dart';
+import '../../../core/utils/format_utils.dart';
 import '../data/patient_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -107,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _InfoItem(Icons.badge_outlined, 'Họ và tên', _patient!.fullName),
                         _InfoItem(Icons.phone_outlined, 'Số điện thoại', _patient!.phone),
                         _InfoItem(Icons.email_outlined, 'Email', _patient!.email),
-                        _InfoItem(Icons.person_outline_rounded, 'Giới tính', _patient!.gender),
+                        _InfoItem(Icons.person_outline_rounded, 'Giới tính', FormatUtils.formatGender(_patient!.gender)),
                         _InfoItem(Icons.cake_outlined, 'Ngày sinh', _patient!.dateOfBirth),
                         _InfoItem(Icons.location_on_outlined, 'Địa chỉ', _patient!.address),
                         _InfoItem(Icons.badge_rounded, 'CCCD/CMND', _patient!.citizenId),
