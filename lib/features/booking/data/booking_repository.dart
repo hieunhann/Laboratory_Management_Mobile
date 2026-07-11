@@ -4,17 +4,23 @@ import '../../../shared/models/bundle_model.dart';
 import '../../../shared/models/booking_model.dart';
 
 class BookingRepository {
+  // Lấy list từ response bất kể API trả về mảng thẳng [...] hay object bọc {items|data|catalogDTOs: [...]}
+  static List _asList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map) {
+      return data['items'] ??
+          data['data'] ??
+          data['catalogDTOs'] ??
+          [];
+    }
+    return [];
+  }
+
   // ─── Patients of current user ─────────────────────────────
   static Future<List<PatientModel>> getMyPatients() async {
     final response = await ApiClient.get('patient/v1/patients/mine',
         params: {'page': 1, 'pageSize': 50});
-    final data = response.data;
-    List items = [];
-    if (data is List) {
-      items = data;
-    } else if (data is Map) {
-      items = data['items'] ?? data['data'] ?? [];
-    }
+    final items = _asList(response.data);
     return items
         .map((e) => PatientModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -24,13 +30,7 @@ class BookingRepository {
   static Future<List<BundleModel>> getAllBundles() async {
     final response = await ApiClient.get('testorder/api/CatalogBundle',
         params: {'pageNumber': 1, 'pageSize': 100});
-    final data = response.data;
-    List items = [];
-    if (data is List) {
-      items = data;
-    } else if (data is Map) {
-      items = data['items'] ?? data['data'] ?? [];
-    }
+    final items = _asList(response.data);
     return items
         .map((e) => BundleModel.fromJson(e as Map<String, dynamic>))
         .toList();

@@ -150,12 +150,11 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
       final response = await ApiClient.get('patient/v1/patients/mine',
           params: {'page': 1, 'pageSize': 50});
       final data = response.data;
-      final d = data['data'] ?? data;
       List items = [];
-      if (d is List) {
-        items = d;
-      } else if (d is Map && d.containsKey('items')) {
-        items = d['items'] as List;
+      if (data is List) {
+        items = data;
+      } else if (data is Map) {
+        items = data['items'] ?? data['data'] ?? [];
       }
       if (mounted) setState(() { _patients = items.cast<Map<String, dynamic>>(); _loading = false; });
     } catch (e) {
@@ -1015,6 +1014,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       final rawDate = dateTime['date'] as String;
       final dateStr = rawDate.split('T')[0];
       
+      // Backend nhận TimeOnly dạng HH:mm:ss (vd "08:00:00"); chuẩn hoá mọi input ("8:00", "08:00") về dạng này
       final rawTime = dateTime['time'] as String;
       final timeBlock = rawTime.length == 5 ? '$rawTime:00' : rawTime;
 

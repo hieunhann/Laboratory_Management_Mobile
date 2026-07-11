@@ -151,7 +151,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        context.pop(true);
+        final result = true;
+        if (context.canPop()) {
+          context.pop(result);
+        } else {
+          context.go('/profile');
+        }
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
