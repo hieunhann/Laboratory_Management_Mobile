@@ -9,7 +9,12 @@ class BookingRepository {
     final response = await ApiClient.get('patient/v1/patients/mine',
         params: {'page': 1, 'pageSize': 50});
     final data = response.data;
-    List items = data['items'] ?? data['data'] ?? data ?? [];
+    List items = [];
+    if (data is List) {
+      items = data;
+    } else if (data is Map) {
+      items = data['items'] ?? data['data'] ?? [];
+    }
     return items
         .map((e) => PatientModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -20,7 +25,12 @@ class BookingRepository {
     final response = await ApiClient.get('testorder/api/CatalogBundle',
         params: {'pageNumber': 1, 'pageSize': 100});
     final data = response.data;
-    List items = data['items'] ?? data['data'] ?? data ?? [];
+    List items = [];
+    if (data is List) {
+      items = data;
+    } else if (data is Map) {
+      items = data['items'] ?? data['data'] ?? [];
+    }
     return items
         .map((e) => BundleModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -29,8 +39,10 @@ class BookingRepository {
   static Future<BundleModel?> getBundleById(dynamic id) async {
     final response = await ApiClient.get('testorder/api/TestBundle/$id');
     final data = response.data;
-    final d = data['data'] ?? data;
-    return d != null ? BundleModel.fromJson(d as Map<String, dynamic>) : null;
+    final d = data is Map ? (data['data'] ?? data) : data;
+    return d != null && d is Map<String, dynamic>
+        ? BundleModel.fromJson(d)
+        : null;
   }
 
   // ─── Catalogs ─────────────────────────────────────────────
@@ -93,9 +105,9 @@ class BookingRepository {
         'testorder/api/Booking',
         params: {'bookingId': bookingId});
     final data = response.data;
-    final d = data['data'] ?? data;
-    return d != null
-        ? BookingModel.fromJson(d as Map<String, dynamic>)
+    final d = data is Map ? (data['data'] ?? data) : data;
+    return d != null && d is Map<String, dynamic>
+        ? BookingModel.fromJson(d)
         : null;
   }
 
@@ -106,8 +118,11 @@ class BookingRepository {
       data: {'bookingId': bookingId, 'amount': amount},
     );
     final data = response.data;
-    return data['url']?.toString() ??
-        data['paymentUrl']?.toString() ??
-        data['data']?.toString();
+    if (data is Map) {
+      return data['url']?.toString() ??
+          data['paymentUrl']?.toString() ??
+          data['data']?.toString();
+    }
+    return data?.toString();
   }
 }
