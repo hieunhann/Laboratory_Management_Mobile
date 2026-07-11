@@ -146,7 +146,7 @@ class PatientRepository {
       });
 
       return allBookings;
->>>>>>> origin/develop
+
     } catch (e) {
       return [];
     }
