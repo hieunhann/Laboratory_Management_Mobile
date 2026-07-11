@@ -186,8 +186,10 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () async {
-                                await context.push('/create-profile');
-                                _load();
+                                final result = await context.push('/create-profile');
+                                if (result == true) {
+                                  _load();
+                                }
                               },
                               child: const Text('Tạo hồ sơ'),
                             ),
@@ -1014,10 +1016,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       
       // Backend nhận TimeOnly dạng HH:mm:ss (vd "08:00:00"); chuẩn hoá mọi input ("8:00", "08:00") về dạng này
       final rawTime = dateTime['time'] as String;
-      final tParts = rawTime.split(':');
-      final hh = tParts[0].padLeft(2, '0');
-      final mm = tParts.length > 1 ? tParts[1].padLeft(2, '0') : '00';
-      final timeBlock = '$hh:$mm:00';
+      final timeBlock = rawTime.length == 5 ? '$rawTime:00' : rawTime;
 
       final payload = {
         'patientId': patientId.toString(),
@@ -1301,18 +1300,35 @@ class _PaymentStepState extends State<_PaymentStep> {
             ]),
           ),
           const Spacer(),
-          SizedBox(width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _loadingUrl ? null : _handlePayment,
-                icon: _loadingUrl 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.payment_rounded),
-                label: const Text('Thanh toán qua VNPay'),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00509D)),
-              )),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onFinish,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primary,
+                    side: const BorderSide(color: AppTheme.primary),
+                  ),
+                  child: const Text('Thanh toán sau'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _loadingUrl ? null : _handlePayment,
+                  icon: _loadingUrl 
+                      ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.payment_rounded, size: 18),
+                  label: const Text('VNPay'),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00509D)),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          SizedBox(width: double.infinity,
-              child: OutlinedButton(onPressed: widget.onBack, child: const Text('← Quay lại'))),
+          SizedBox(
+              width: double.infinity,
+              child: TextButton(onPressed: widget.onBack, child: const Text('← Quay lại', style: TextStyle(color: AppTheme.textSecondary)))),
         ],
       ),
     );

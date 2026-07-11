@@ -37,6 +37,7 @@ class PatientRepository {
   static Future<PatientModel?> createProfile(
       Map<String, dynamic> payload) async {
     final apiPayload = Map<String, dynamic>.from(payload);
+    apiPayload['createdChannel'] = 'self';
     if (apiPayload['gender'] == 'Male') {
       apiPayload['gender'] = 0;
     } else if (apiPayload['gender'] == 'Female') {
@@ -145,6 +146,7 @@ class PatientRepository {
       });
 
       return allBookings;
+
     } catch (e) {
       return [];
     }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../config/app_theme.dart';
 import '../data/lab_staff_repository.dart';
 
@@ -144,9 +146,12 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildQuickCard(
-            Icons.home_rounded, 'Trang chủ',
-            const Color(0xFF7B1FA2),
-            () => context.go('/'),
+            Icons.logout_rounded, 'Đăng xuất',
+            AppTheme.error,
+            () async {
+              await context.read<AuthProvider>().logout();
+              if (context.mounted) context.go('/login');
+            },
           ),
         ),
       ],
@@ -201,7 +206,7 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
               children: [
                 Text(a['patientName']?.toString() ?? 'Bệnh nhân',
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                Text(a['time']?.toString() ?? a['appointmentTime']?.toString() ?? '',
+                Text(a['time']?.toString() ?? a['slotInfo']?['timeBlock']?.toString() ?? a['appointmentTime']?.toString() ?? '',
                     style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
               ],
             ),

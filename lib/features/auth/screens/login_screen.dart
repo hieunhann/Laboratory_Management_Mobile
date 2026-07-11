@@ -32,12 +32,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     if (success) {
       final role = auth.role;
+      debugPrint('====== [LOGIN_SCREEN] auth.role = "$role", going to ${(role == "LabUser" || role == "Receptionist" || role == "LabBlogger" || role == "Technician" || role == "Manager" || role == "Admin" || role == "Staff") ? "/lab-staff" : "/"} ======');
       if (role == 'LabUser' ||
           role == 'Receptionist' ||
           role == 'LabBlogger' ||
           role == 'Technician' ||
           role == 'Manager' ||
-          role == 'Admin') {
+          role == 'Admin' ||
+          role == 'Staff') {
         context.go('/lab-staff');
       } else {
         context.go('/');

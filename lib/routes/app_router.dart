@@ -52,16 +52,34 @@ class AppRouter {
           return '/login';
         }
 
-        // Lab staff routes need specific role
+        final role = authProvider.role;
+        final isStaffRole = role == 'Admin' ||
+            role == 'Manager' ||
+            role == 'LabUser' ||
+            role == 'Receptionist' ||
+            role == 'LabBlogger' ||
+            role == 'Technician' ||
+            role == 'Staff';
+
+        // Nếu đã đăng nhập và đang ở trang public (login/register) → redirect theo role
+        // Chỉ redirect khi KHÔNG đang loading (tránh redirect sớm khi đang gọi API login)
+        if (isAuth && isPublic && !authProvider.isLoading) {
+          debugPrint('====== [ROUTER] isAuth=$isAuth, role=$role, isStaff=$isStaffRole ======');
+          return isStaffRole ? '/lab-staff' : '/';
+        }
+
+        // Nếu là Staff, không được phép vào trang của Customer
+        if (isAuth && isStaffRole) {
+          final isStaffAllowedRoute = state.matchedLocation.startsWith('/lab-staff') || 
+                                      state.matchedLocation == '/change-password';
+          if (!isStaffAllowedRoute) {
+            return '/lab-staff';
+          }
+        }
+
+        // Lab staff routes need specific role (đã được bao phủ một phần bởi logic trên, nhưng giữ lại cho chắc)
         if (state.matchedLocation.startsWith('/lab-staff') && isAuth) {
-          final role = authProvider.role;
-          final canAccess = role == 'Admin' ||
-              role == 'Manager' ||
-              role == 'LabUser' ||
-              role == 'Receptionist' ||
-              role == 'LabBlogger' ||
-              role == 'Technician';
-          if (!canAccess) return '/';
+          if (!isStaffRole) return '/';
         }
 
         return null;

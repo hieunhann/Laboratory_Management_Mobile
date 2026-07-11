@@ -151,8 +151,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             behavior: SnackBarBehavior.floating,
           ),
         );
+        final result = true;
         if (context.canPop()) {
-          context.pop(true);
+          context.pop(result);
         } else {
           context.go('/profile');
         }
