@@ -28,11 +28,31 @@ class PatientRepository {
         : null;
   }
 
+  static const _bloodTypes = [
+    'A_POSITIVE', 'A_NEGATIVE', 'B_POSITIVE', 'B_NEGATIVE',
+    'AB_POSITIVE', 'AB_NEGATIVE', 'O_POSITIVE', 'O_NEGATIVE'
+  ];
+
   // ─── Create profile ───────────────────────────────────────
   static Future<PatientModel?> createProfile(
       Map<String, dynamic> payload) async {
+    final apiPayload = Map<String, dynamic>.from(payload);
+    if (apiPayload['gender'] == 'Male') {
+      apiPayload['gender'] = 0;
+    } else if (apiPayload['gender'] == 'Female') {
+      apiPayload['gender'] = 1;
+    }
+
+    final bt = apiPayload['bloodType'];
+    if (bt != null) {
+      final idx = _bloodTypes.indexOf(bt.toString());
+      if (idx != -1) {
+        apiPayload['bloodType'] = idx;
+      }
+    }
+
     final response =
-        await ApiClient.post('patient/v1/patients', data: payload);
+        await ApiClient.post('patient/v1/patients', data: apiPayload);
     final data = response.data;
     final d = data['data'] ?? data;
     return d != null
@@ -43,8 +63,23 @@ class PatientRepository {
   // ─── Update profile ───────────────────────────────────────
   static Future<PatientModel?> updateProfile(
       String patientId, Map<String, dynamic> payload) async {
+    final apiPayload = Map<String, dynamic>.from(payload);
+    if (apiPayload['gender'] == 'Male') {
+      apiPayload['gender'] = 0;
+    } else if (apiPayload['gender'] == 'Female') {
+      apiPayload['gender'] = 1;
+    }
+
+    final bt = apiPayload['bloodType'];
+    if (bt != null) {
+      final idx = _bloodTypes.indexOf(bt.toString());
+      if (idx != -1) {
+        apiPayload['bloodType'] = idx;
+      }
+    }
+
     final response =
-        await ApiClient.put('patient/v1/patients/$patientId', data: payload);
+        await ApiClient.put('patient/v1/patients/$patientId', data: apiPayload);
     final data = response.data;
     final d = data['data'] ?? data;
     return d != null

@@ -39,8 +39,10 @@ class BookingRepository {
   static Future<BundleModel?> getBundleById(dynamic id) async {
     final response = await ApiClient.get('testorder/api/TestBundle/$id');
     final data = response.data;
-    final d = data['data'] ?? data;
-    return d != null ? BundleModel.fromJson(d as Map<String, dynamic>) : null;
+    final d = data is Map ? (data['data'] ?? data) : data;
+    return d != null && d is Map<String, dynamic>
+        ? BundleModel.fromJson(d)
+        : null;
   }
 
   // ─── Catalogs ─────────────────────────────────────────────
@@ -103,9 +105,9 @@ class BookingRepository {
         'testorder/api/Booking',
         params: {'bookingId': bookingId});
     final data = response.data;
-    final d = data['data'] ?? data;
-    return d != null
-        ? BookingModel.fromJson(d as Map<String, dynamic>)
+    final d = data is Map ? (data['data'] ?? data) : data;
+    return d != null && d is Map<String, dynamic>
+        ? BookingModel.fromJson(d)
         : null;
   }
 
@@ -116,8 +118,11 @@ class BookingRepository {
       data: {'bookingId': bookingId, 'amount': amount},
     );
     final data = response.data;
-    return data['url']?.toString() ??
-        data['paymentUrl']?.toString() ??
-        data['data']?.toString();
+    if (data is Map) {
+      return data['url']?.toString() ??
+          data['paymentUrl']?.toString() ??
+          data['data']?.toString();
+    }
+    return data?.toString();
   }
 }

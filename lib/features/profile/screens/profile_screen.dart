@@ -123,7 +123,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // ─── Menu Options ─────────────────────────
                     _buildMenuCard([
                       _MenuItem(Icons.edit_rounded, 'Chỉnh sửa hồ sơ',
-                          () => context.push(_patient != null ? '/profile/edit' : '/create-profile')),
+                          () => context.push(
+                              _patient != null ? '/profile/edit' : '/create-profile',
+                              extra: _patient,
+                          )),
                       _MenuItem(Icons.medical_services_rounded, 'Kết quả xét nghiệm',
                           () => context.push('/medical-record')),
                       _MenuItem(Icons.article_rounded, 'Tin tức y tế',

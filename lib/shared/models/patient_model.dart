@@ -26,19 +26,52 @@ class PatientModel {
   });
 
   factory PatientModel.fromJson(Map<String, dynamic> json) {
+    String? genderStr;
+    final rawGender = json['gender'];
+    if (rawGender != null) {
+      final rawStr = rawGender.toString().toLowerCase();
+      if (rawGender == 0 || rawStr == '0' || rawStr == 'male') {
+        genderStr = 'Male';
+      } else if (rawGender == 1 || rawStr == '1' || rawStr == 'female') {
+        genderStr = 'Female';
+      } else {
+        genderStr = rawGender.toString();
+      }
+    }
+
+    String? bloodTypeStr;
+    final rawBloodType = json['bloodType'];
+    if (rawBloodType != null) {
+      final bloodTypesList = [
+        'A_POSITIVE', 'A_NEGATIVE', 'B_POSITIVE', 'B_NEGATIVE',
+        'AB_POSITIVE', 'AB_NEGATIVE', 'O_POSITIVE', 'O_NEGATIVE'
+      ];
+      int? bloodIdx;
+      if (rawBloodType is int) {
+        bloodIdx = rawBloodType;
+      } else {
+        bloodIdx = int.tryParse(rawBloodType.toString());
+      }
+      if (bloodIdx != null && bloodIdx >= 0 && bloodIdx < bloodTypesList.length) {
+        bloodTypeStr = bloodTypesList[bloodIdx];
+      } else {
+        bloodTypeStr = rawBloodType.toString();
+      }
+    }
+
     return PatientModel(
       patientId: json['patientId']?.toString() ?? json['id']?.toString(),
       fullName: json['fullName']?.toString() ?? json['name']?.toString(),
       email: json['email']?.toString(),
       phone: json['phone']?.toString() ?? json['phoneNumber']?.toString(),
-      gender: json['gender']?.toString(),
+      gender: genderStr,
       dateOfBirth:
           json['dateOfBirth']?.toString() ?? json['birthday']?.toString(),
       address: json['address']?.toString(),
       citizenId: json['citizenId']?.toString() ?? json['idCard']?.toString(),
       insuranceNumber: json['insuranceNumber']?.toString() ??
           json['healthInsurance']?.toString(),
-      bloodType: json['bloodType']?.toString(),
+      bloodType: bloodTypeStr,
       userId: json['userId']?.toString(),
     );
   }
