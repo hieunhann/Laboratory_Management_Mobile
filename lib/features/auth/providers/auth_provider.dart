@@ -82,10 +82,38 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
 
-      await AuthRepository.login(username, password);
+      final res = await AuthRepository.login(username, password);
+      if (res['success'] == false || res['isSuccess'] == false) {
+        _errorMessage = res['message']?.toString() ?? 'Đăng nhập thất bại';
+        notifyListeners();
+        return false;
+      }
+
+      // Kiểm tra xem đã lưu được token hợp lệ hay chưa
+      final token = await SecureStorageService.getAccessToken();
+      if (token == null || token.isEmpty) {
+        _errorMessage = res['message']?.toString() ??
+            res['error']?.toString() ??
+            'Tên đăng nhập hoặc mật khẩu không đúng';
+        notifyListeners();
+        return false;
+      }
+
       _isAuthenticated = true;
       _role = await AuthUtils.getCurrentUserRole();
-      _currentUser = await AuthRepository.getCurrentUser();
+
+      // Lấy thông tin user
+      final user = await AuthRepository.getCurrentUser();
+      if (user == null) {
+        await SecureStorageService.clearAll();
+        _isAuthenticated = false;
+        _role = null;
+        _errorMessage = 'Không lấy được thông tin người dùng từ máy chủ';
+        notifyListeners();
+        return false;
+      }
+
+      _currentUser = user;
       notifyListeners();
       return true;
     } catch (e) {
@@ -105,7 +133,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await AuthRepository.register(payload);
+      final res = await AuthRepository.register(payload);
+      if (res['success'] == false || res['isSuccess'] == false) {
+        _errorMessage = res['message']?.toString() ?? 'Đăng ký thất bại';
+        notifyListeners();
+        return false;
+      }
       notifyListeners();
       return true;
     } catch (e) {
@@ -179,9 +212,21 @@ class AuthProvider extends ChangeNotifier {
     try {
       final resp = (e as dynamic).response?.data;
       if (resp is Map) {
-        return resp['message']?.toString() ??
+        if (resp['errors'] != null) {
+          final errors = resp['errors'];
+          if (errors is Map) {
+            final firstErrorList = errors.values.first;
+            if (firstErrorList is List && firstErrorList.isNotEmpty) {
+              return firstErrorList.first.toString();
+            }
+          } else if (errors is List && errors.isNotEmpty) {
+            return errors.first.toString();
+          }
+        }
+        return resp['detail']?.toString() ??
+            resp['message']?.toString() ??
             resp['error']?.toString() ??
-            'Đăng nhập thất bại';
+            'Có lỗi xảy ra. Vui lòng thử lại!';
       }
     } catch (_) {}
     return 'Có lỗi xảy ra. Vui lòng thử lại!';

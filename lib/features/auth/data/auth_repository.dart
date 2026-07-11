@@ -15,7 +15,10 @@ class AuthRepository {
     final data = response.data;
     // Lưu token
     final accessToken =
-        data['accessToken'] ?? data['token'] ?? data['data']?['accessToken'];
+        data['accessToken'] ??
+        data['token'] ??
+        data['data']?['accessToken'] ??
+        data['data']?['token'];
     final refreshToken =
         data['refreshToken'] ?? data['data']?['refreshToken'];
     if (accessToken != null) {
