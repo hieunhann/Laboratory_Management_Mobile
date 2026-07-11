@@ -150,7 +150,12 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
       final response = await ApiClient.get('patient/v1/patients/mine',
           params: {'page': 1, 'pageSize': 50});
       final data = response.data;
-      List items = data['items'] ?? data['data'] ?? [];
+      List items = [];
+      if (data is List) {
+        items = data;
+      } else if (data is Map) {
+        items = data['items'] ?? data['data'] ?? [];
+      }
       if (mounted) setState(() { _patients = items.cast<Map<String, dynamic>>(); _loading = false; });
     } catch (e) {
       if (mounted) setState(() => _loading = false);
@@ -180,7 +185,10 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
                                 style: TextStyle(color: AppTheme.textSecondary)),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: () => context.push('/create-profile'),
+                              onPressed: () async {
+                                await context.push('/create-profile');
+                                _load();
+                              },
                               child: const Text('Tạo hồ sơ'),
                             ),
                           ],

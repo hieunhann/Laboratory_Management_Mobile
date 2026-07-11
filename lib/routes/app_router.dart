@@ -140,8 +140,10 @@ class AppRouter {
         // ─── Medical Record ───────────────────────────────────
         GoRoute(
           path: '/medical-record',
-          pageBuilder: (c, s) =>
-              _slide(c, s, const MedicalRecordScreen()),
+          pageBuilder: (c, s) {
+            final bookingId = s.uri.queryParameters['bookingId'];
+            return _slide(c, s, MedicalRecordScreen(bookingId: bookingId));
+          },
         ),
 
         // ─── Blog routes ──────────────────────────────────────
