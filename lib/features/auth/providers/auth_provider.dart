@@ -101,6 +101,8 @@ class AuthProvider extends ChangeNotifier {
 
       _isAuthenticated = true;
       _role = await AuthUtils.getCurrentUserRole();
+      // DEBUG: In ra role thực tế từ JWT để kiểm tra
+      debugPrint('====== [AUTH] Role từ JWT: $_role ======');
 
       // Lấy thông tin user
       final user = await AuthRepository.getCurrentUser();

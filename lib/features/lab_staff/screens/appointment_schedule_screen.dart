@@ -201,7 +201,7 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
             children: [
               const Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textSecondary),
               const SizedBox(width: 6),
-              Text(a['time']?.toString() ?? a['appointmentTime']?.toString() ?? '',
+              Text(a['time']?.toString() ?? a['slotInfo']?['timeBlock']?.toString() ?? a['appointmentTime']?.toString() ?? '',
                   style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
               const Spacer(),
               if (canStart && bookingId.isNotEmpty)

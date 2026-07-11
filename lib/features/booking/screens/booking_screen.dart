@@ -150,7 +150,13 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
       final response = await ApiClient.get('patient/v1/patients/mine',
           params: {'page': 1, 'pageSize': 50});
       final data = response.data;
-      List items = data['items'] ?? data['data'] ?? [];
+      final d = data['data'] ?? data;
+      List items = [];
+      if (d is List) {
+        items = d;
+      } else if (d is Map && d.containsKey('items')) {
+        items = d['items'] as List;
+      }
       if (mounted) setState(() { _patients = items.cast<Map<String, dynamic>>(); _loading = false; });
     } catch (e) {
       if (mounted) setState(() => _loading = false);
@@ -180,7 +186,12 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
                                 style: TextStyle(color: AppTheme.textSecondary)),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: () => context.push('/create-profile'),
+                              onPressed: () async {
+                                final result = await context.push('/create-profile');
+                                if (result == true) {
+                                  _load();
+                                }
+                              },
                               child: const Text('Tạo hồ sơ'),
                             ),
                           ],
@@ -1005,7 +1016,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       final dateStr = rawDate.split('T')[0];
       
       final rawTime = dateTime['time'] as String;
-      final timeBlock = rawTime.contains(':') ? rawTime : '$rawTime:00';
+      final timeBlock = rawTime.length == 5 ? '$rawTime:00' : rawTime;
 
       final payload = {
         'patientId': patientId.toString(),
@@ -1289,18 +1300,35 @@ class _PaymentStepState extends State<_PaymentStep> {
             ]),
           ),
           const Spacer(),
-          SizedBox(width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _loadingUrl ? null : _handlePayment,
-                icon: _loadingUrl 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.payment_rounded),
-                label: const Text('Thanh toán qua VNPay'),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00509D)),
-              )),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onFinish,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primary,
+                    side: const BorderSide(color: AppTheme.primary),
+                  ),
+                  child: const Text('Thanh toán sau'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _loadingUrl ? null : _handlePayment,
+                  icon: _loadingUrl 
+                      ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.payment_rounded, size: 18),
+                  label: const Text('VNPay'),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00509D)),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          SizedBox(width: double.infinity,
-              child: OutlinedButton(onPressed: widget.onBack, child: const Text('← Quay lại'))),
+          SizedBox(
+              width: double.infinity,
+              child: TextButton(onPressed: widget.onBack, child: const Text('← Quay lại', style: TextStyle(color: AppTheme.textSecondary)))),
         ],
       ),
     );

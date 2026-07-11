@@ -14,11 +14,12 @@ class LabStaffRepository {
       };
       if (date != null) params['date'] = date;
 
+      // Đã sửa thành API Booking/info để lấy thông tin đặt lịch thay vì lấy Slot trống
       final response = await ApiClient.get(
-          'testorder/api/AppointmentSlot',
+          'testorder/api/Booking/info',
           params: params);
       final data = response.data;
-      List items = data['items'] ?? data['data'] ?? data ?? [];
+      List items = data['bookingResponses'] ?? data['items'] ?? data['data'] ?? [];
       return items.cast<Map<String, dynamic>>();
     } catch (e) {
       return [];

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../config/app_theme.dart';
 import '../../../core/utils/auth_utils.dart';
 
@@ -78,10 +80,13 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
                       onTap: () => context.push('/lab-staff/appointment-schedule'),
                     ),
                     _buildMenuCard(
-                      icon: Icons.home_rounded,
-                      label: 'Về trang chủ',
-                      color: const Color(0xFF7B1FA2),
-                      onTap: () => context.go('/'),
+                      icon: Icons.logout_rounded,
+                      label: 'Đăng xuất',
+                      color: AppTheme.error,
+                      onTap: () async {
+                        await context.read<AuthProvider>().logout();
+                        if (context.mounted) context.go('/login');
+                      },
                     ),
                   ],
                 ),

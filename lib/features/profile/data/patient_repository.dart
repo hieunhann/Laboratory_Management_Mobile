@@ -37,6 +37,7 @@ class PatientRepository {
   static Future<PatientModel?> createProfile(
       Map<String, dynamic> payload) async {
     final apiPayload = Map<String, dynamic>.from(payload);
+    apiPayload['createdChannel'] = 'self';
     if (apiPayload['gender'] == 'Male') {
       apiPayload['gender'] = 0;
     } else if (apiPayload['gender'] == 'Female') {
@@ -91,10 +92,16 @@ class PatientRepository {
   static Future<List<BookingModel>> getMedicalRecords(
       {int page = 1, int pageSize = 20}) async {
     try {
-      final response = await ApiClient.get('patient/v1/patients/mine',
+      final response = await ApiClient.get('testorder/api/Booking/history',
           params: {'page': page, 'pageSize': pageSize});
       final data = response.data;
-      List items = data['items'] ?? data['data'] ?? [];
+      final d = data['data'] ?? data;
+      List items = [];
+      if (d is List) {
+        items = d;
+      } else if (d is Map && d.containsKey('items')) {
+        items = d['items'] as List;
+      }
       return items
           .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
           .toList();

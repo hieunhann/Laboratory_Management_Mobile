@@ -122,10 +122,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // ─── Menu Options ─────────────────────────
                     _buildMenuCard([
                       _MenuItem(Icons.edit_rounded, 'Chỉnh sửa hồ sơ',
-                          () => context.push(
-                              _patient != null ? '/profile/edit' : '/create-profile',
-                              extra: _patient,
-                          )),
+                          () async {
+                            final result = await context.push(
+                                _patient != null ? '/profile/edit' : '/create-profile',
+                                extra: _patient,
+                            );
+                            if (result == true) {
+                              _loadProfile();
+                            }
+                          }),
                       _MenuItem(Icons.medical_services_rounded, 'Kết quả xét nghiệm',
                           () => context.push('/medical-record')),
                       _MenuItem(Icons.article_rounded, 'Tin tức y tế',
@@ -225,7 +230,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context.push('/create-profile'),
+            onPressed: () async {
+              final result = await context.push('/create-profile');
+              if (result == true) {
+                _loadProfile();
+              }
+            },
             child: const Text('Tạo hồ sơ ngay'),
           ),
         ],

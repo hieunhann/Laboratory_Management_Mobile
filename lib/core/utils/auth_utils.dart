@@ -57,7 +57,8 @@ class AuthUtils {
         role == 'LabUser' ||
         role == 'Receptionist' ||
         role == 'LabBlogger' ||
-        role == 'Technician';
+        role == 'Technician' ||
+        role == 'Staff';
   }
 
   // ─── Get user ID từ token ────────────────────────────────
