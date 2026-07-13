@@ -60,7 +60,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final data = response.data;
       List items = [];
       if (data is Map) {
-        items = data['items'] ?? data['data'] ?? [];
+        // Backend trả về mảng danh sách trong biến bookingResponses
+        items = data['bookingResponses'] ?? data['items'] ?? data['data'] ?? [];
       } else if (data is List) {
         items = data;
       }
@@ -68,6 +69,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       setState(() {
         _bookings = items
             .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
+            .where((b) => b.isCompleted) // CHỈ lấy những đơn đã Hoàn thành
             .toList();
         _loading = false;
       });

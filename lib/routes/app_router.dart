@@ -6,6 +6,7 @@ import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/home/screens/home_screen.dart';
+import '../features/home/screens/bundle_list_screen.dart';
 import '../features/booking/screens/booking_screen.dart';
 import '../features/booking/screens/success_booking_screen.dart';
 import '../features/history/screens/history_screen.dart';
@@ -95,6 +96,11 @@ class AppRouter {
                   _noTransition(c, s, const HomeScreen()),
             ),
             GoRoute(
+              path: '/bundles',
+              pageBuilder: (c, s) =>
+                  _noTransition(c, s, const BundleListScreen()),
+            ),
+            GoRoute(
               path: '/history',
               pageBuilder: (c, s) =>
                   _noTransition(c, s, const HistoryScreen()),
@@ -125,7 +131,11 @@ class AppRouter {
         // ─── Booking routes ───────────────────────────────────
         GoRoute(
           path: '/booking',
-          pageBuilder: (c, s) => _slide(c, s, const BookingScreen()),
+          pageBuilder: (c, s) {
+            final bundleIdStr = s.uri.queryParameters['bundleId'];
+            final initialBundleId = bundleIdStr != null ? int.tryParse(bundleIdStr) : null;
+            return _slide(c, s, BookingScreen(initialBundleId: initialBundleId));
+          },
         ),
         GoRoute(
           path: '/booking/success',

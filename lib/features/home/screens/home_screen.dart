@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSectionHeader(
                     title: 'Gói xét nghiệm',
                     subtitle: 'Tiết kiệm hơn với gói dịch vụ',
-                    onSeeAll: () => context.push('/booking'),
+                    onSeeAll: () => context.push('/bundles'),
                   ),
                   const SizedBox(height: 12),
                   _buildBundlesSection(),
@@ -407,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBundleCard(BundleModel bundle) {
     return GestureDetector(
-      onTap: () => context.push('/booking'),
+      onTap: () => context.push('/booking?bundleId=${bundle.bundleId}'),
       child: Container(
         width: 180,
         padding: const EdgeInsets.all(14),

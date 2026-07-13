@@ -8,7 +8,8 @@ import '../data/booking_repository.dart';
 import 'vnpay_webview_screen.dart';
 
 class BookingScreen extends StatefulWidget {
-  const BookingScreen({super.key});
+  final int? initialBundleId;
+  const BookingScreen({super.key, this.initialBundleId});
   @override
   State<BookingScreen> createState() => _BookingScreenState();
 }
@@ -54,6 +55,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 _PatientSelectionStep(
                     onNext: (p) => setState(() { _selectedPatient = p; _currentStep = 1; })),
                 _TestSelectionStep(
+                    initialBundleId: widget.initialBundleId,
                     onNext: (i) => setState(() { _selectedItems = i; _currentStep = 2; }),
                     onBack: () => setState(() => _currentStep = 0)),
                 _DateTimeStep(
@@ -248,7 +250,8 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
 class _TestSelectionStep extends StatefulWidget {
   final Function(Map<String, dynamic>) onNext;
   final VoidCallback onBack;
-  const _TestSelectionStep({required this.onNext, required this.onBack});
+  final int? initialBundleId;
+  const _TestSelectionStep({required this.onNext, required this.onBack, this.initialBundleId});
 
   @override
   State<_TestSelectionStep> createState() => _TestSelectionStepState();
@@ -267,6 +270,9 @@ class _TestSelectionStepState extends State<_TestSelectionStep> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialBundleId != null) {
+      _selectedBundleId = widget.initialBundleId;
+    }
     _loadData();
   }
 

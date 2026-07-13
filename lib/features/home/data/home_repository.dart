@@ -6,9 +6,9 @@ class HomeRepository {
   // ─── Bundles (Gói xét nghiệm) ────────────────────────────
   static Future<List<BundleModel>> getBundles({int limit = 6}) async {
     try {
-      final response = await ApiClient.get(
-        'testorder/api/CatalogBundle',
-        params: {'pageNumber': 1, 'pageSize': limit},
+      final response = await ApiClient.publicInstance.get(
+        'testorder/api/TestBundle',
+        queryParameters: {'pageNumber': 1, 'pageSize': limit},
       );
       final data = response.data;
       List items = data['items'] ?? data['data'] ?? data ?? [];
