@@ -1224,6 +1224,9 @@ class _PaymentStepState extends State<_PaymentStep> {
     setState(() => _loadingUrl = true);
     try {
       final vnpayUrl = await BookingRepository.getVnPayUrl(bookingId, total);
+      print('==============================================');
+      print('=== VNPAY URL === $vnpayUrl');
+      print('==============================================');
       if (vnpayUrl == null || vnpayUrl.isEmpty) {
         throw 'Không tạo được link thanh toán VNPay. Vui lòng kiểm tra lại!';
       }

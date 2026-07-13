@@ -57,12 +57,51 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       ),
     );
     if (confirmed != true) return;
-    final success = await LabStaffRepository.startInstrumentRun(bookingId);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Có lỗi xảy ra'),
-        backgroundColor: success ? AppTheme.success : AppTheme.error,
-      ));
+    
+    try {
+      await LabStaffRepository.startInstrumentRun(bookingId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Đã bắt đầu xét nghiệm!'),
+          backgroundColor: AppTheme.success,
+        ));
+        
+        // Cập nhật State cục bộ thay vì load lại toàn bộ danh sách từ server
+        setState(() {
+          final index = _appointments.indexWhere((a) => a['bookingId']?.toString() == bookingId);
+          if (index != -1) {
+            // Tạo một bản copy của item để đảm bảo tính mutable và thay đổi status
+            final updatedItem = Map<String, dynamic>.from(_appointments[index]);
+            updatedItem['status'] = 'Completed'; 
+            _appointments[index] = updatedItem;
+          }
+        });
+      }
+    } catch (e) {
+      print('=== [ERROR IN _startInstrumentRun] ===');
+      print(e);
+      if (mounted) {
+        String msg = e.toString();
+        final dynamic err = e;
+        try {
+          if (err.response != null) {
+            print('=== [RESPONSE STATUS CODE]: ${err.response?.statusCode}');
+            print('=== [RESPONSE DATA]: ${err.response?.data}');
+          }
+          if (err.response?.data != null) {
+            final data = err.response.data;
+            if (data is Map) {
+              msg = data['message']?.toString() 
+                 ?? data['Message']?.toString() 
+                 ?? msg;
+            }
+          }
+        } catch (_) {}
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Lỗi (Xem console): $msg'),
+          backgroundColor: AppTheme.error,
+        ));
+      }
     }
   }
 

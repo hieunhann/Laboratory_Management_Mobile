@@ -56,18 +56,13 @@ class LabStaffRepository {
   }
 
   // ─── Start instrument run ─────────────────────────────────
-  static Future<bool> startInstrumentRun(String bookingId) async {
-    try {
-      // Generate instrument code như web
-      final code = _generateInstrumentCode();
-      await ApiClient.post(
-        'instrument/api/instrument/runs/start',
-        data: {'bookingId': bookingId, 'instrumentCode': code},
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
+  static Future<void> startInstrumentRun(String bookingId) async {
+    // Generate instrument code như web
+    final code = _generateInstrumentCode();
+    await ApiClient.post(
+      'instrument/api/instrument/runs/start',
+      data: {'bookingId': bookingId, 'instrumentCode': code},
+    );
   }
 
   static String _generateInstrumentCode() {
