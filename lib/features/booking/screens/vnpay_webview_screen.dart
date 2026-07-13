@@ -34,21 +34,19 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
           },
           onNavigationRequest: (NavigationRequest request) {
             final uri = Uri.parse(request.url);
-            // Kiểm tra redirect từ VNPay (ví dụ chứa successBooking hoặc vnp_ResponseCode)
+            // Chỉ bắt sự kiện redirect khi VNPAY chuyển hướng quay lại trang kết quả của Merchant (hema-link.io.vn hoặc localhost)
+            // Tránh đóng WebView sớm khi VNPAY đang chuyển hướng nội bộ trong sandbox.vnpayment.vn
             if (request.url.contains('successBooking') || 
-                request.url.contains('booking/success') ||
-                uri.queryParameters.containsKey('vnp_ResponseCode')) {
+                request.url.contains('failBooking') || 
+                request.url.contains('hema-link.io.vn')) {
               
               final responseCode = uri.queryParameters['vnp_ResponseCode'];
-              if (responseCode == '00') {
+              if (responseCode == '00' || request.url.contains('successBooking')) {
                 // Thanh toán thành công
                 Navigator.pop(context, true);
-              } else if (responseCode != null) {
+              } else {
                 // Thanh toán thất bại hoặc hủy
                 Navigator.pop(context, false);
-              } else {
-                // Mặc định thành công nếu redirect về successBooking
-                Navigator.pop(context, true);
               }
               return NavigationDecision.prevent;
             }

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 
 class LabStaffRepository {
@@ -56,7 +57,7 @@ class LabStaffRepository {
   }
 
   // ─── Start instrument run ─────────────────────────────────
-  static Future<bool> startInstrumentRun(String bookingId) async {
+  static Future<String?> startInstrumentRun(String bookingId) async {
     try {
       // Generate instrument code như web
       final code = _generateInstrumentCode();
@@ -64,9 +65,16 @@ class LabStaffRepository {
         'instrument/api/instrument/runs/start',
         data: {'bookingId': bookingId, 'instrumentCode': code},
       );
-      return true;
+      return null; // Success
     } catch (e) {
-      return false;
+      if (e is DioException) {
+        final resData = e.response?.data;
+        if (resData is Map) {
+          return resData['error']?.toString() ?? resData['message']?.toString() ?? e.message;
+        }
+        return e.message;
+      }
+      return e.toString();
     }
   }
 

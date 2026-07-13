@@ -57,10 +57,11 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       ),
     );
     if (confirmed != true) return;
-    final success = await LabStaffRepository.startInstrumentRun(bookingId);
+    final error = await LabStaffRepository.startInstrumentRun(bookingId);
     if (mounted) {
+      final success = error == null;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Có lỗi xảy ra'),
+        content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Lỗi: $error'),
         backgroundColor: success ? AppTheme.success : AppTheme.error,
       ));
     }

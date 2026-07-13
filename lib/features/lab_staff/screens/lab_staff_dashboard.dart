@@ -45,14 +45,21 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Tổng quan hôm nay'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded),
-            onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => context.pop(),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _loadData),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _loadData,
+          ),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
           : RefreshIndicator(
               color: AppTheme.primary,
               onRefresh: _loadData,
@@ -65,21 +72,44 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
                     // Stats cards
                     Row(
                       children: [
-                        Expanded(child: _buildStatCard('Tổng hôm nay', _totalToday.toString(),
-                            Icons.calendar_today_rounded, AppTheme.primary)),
+                        Expanded(
+                          child: _buildStatCard(
+                            'Tổng hôm nay',
+                            _totalToday.toString(),
+                            Icons.calendar_today_rounded,
+                            AppTheme.primary,
+                          ),
+                        ),
                         const SizedBox(width: 12),
-                        Expanded(child: _buildStatCard('Hoàn thành', _totalCompleted.toString(),
-                            Icons.check_circle_rounded, AppTheme.success)),
+                        Expanded(
+                          child: _buildStatCard(
+                            'Hoàn thành',
+                            _totalCompleted.toString(),
+                            Icons.check_circle_rounded,
+                            AppTheme.success,
+                          ),
+                        ),
                         const SizedBox(width: 12),
-                        Expanded(child: _buildStatCard('Chờ xử lý', _totalPending.toString(),
-                            Icons.pending_rounded, AppTheme.warning)),
+                        Expanded(
+                          child: _buildStatCard(
+                            'Chờ xử lý',
+                            _totalPending.toString(),
+                            Icons.pending_rounded,
+                            AppTheme.warning,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
                     // Quick access
-                    const Text('Truy cập nhanh',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary)),
+                    const Text(
+                      'Truy cập nhanh',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     _buildQuickAccess(context),
                     const SizedBox(height: 24),
@@ -87,19 +117,29 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Lịch hẹn gần đây',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary)),
+                        const Text(
+                          'Lịch hẹn gần đây',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
                         TextButton(
-                          onPressed: () => context.push('/lab-staff/appointment-schedule'),
+                          onPressed: () =>
+                              context.push('/lab-staff/appointment-schedule'),
                           child: const Text('Xem tất cả'),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     if (_appointments.isEmpty)
-                      const Center(child: Text('Không có lịch hẹn hôm nay',
-                          style: TextStyle(color: AppTheme.textSecondary)))
+                      const Center(
+                        child: Text(
+                          'Không có lịch hẹn hôm nay',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      )
                     else
                       ..._appointments.map((a) => _buildAppointmentCard(a)),
                   ],
@@ -109,7 +149,12 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -121,13 +166,20 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
         children: [
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.w700, color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-              textAlign: TextAlign.center),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -138,7 +190,8 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
       children: [
         Expanded(
           child: _buildQuickCard(
-            Icons.calendar_month_rounded, 'Lịch xét nghiệm',
+            Icons.calendar_month_rounded,
+            'Lịch xét nghiệm',
             AppTheme.secondary,
             () => context.push('/lab-staff/appointment-schedule'),
           ),
@@ -146,7 +199,8 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildQuickCard(
-            Icons.logout_rounded, 'Đăng xuất',
+            Icons.logout_rounded,
+            'Đăng xuất',
             AppTheme.error,
             () async {
               await context.read<AuthProvider>().logout();
@@ -158,22 +212,35 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
     );
   }
 
-  Widget _buildQuickCard(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildQuickCard(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
             Icon(icon, color: color, size: 22),
             const SizedBox(width: 10),
-            Expanded(child: Text(label,
-                style: TextStyle(fontWeight: FontWeight.w600, color: color, fontSize: 13))),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                  fontSize: 13,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -192,34 +259,57 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
       child: Row(
         children: [
           Container(
-            width: 40, height: 40,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: AppTheme.surfaceVariant,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.person_rounded, color: AppTheme.primary, size: 22),
+            child: const Icon(
+              Icons.person_rounded,
+              color: AppTheme.primary,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(a['patientName']?.toString() ?? 'Bệnh nhân',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                Text(a['time']?.toString() ?? a['slotInfo']?['timeBlock']?.toString() ?? a['appointmentTime']?.toString() ?? '',
-                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                Text(
+                  a['patientName']?.toString() ?? 'Bệnh nhân',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  a['time']?.toString() ??
+                      a['slotInfo']?['timeBlock']?.toString() ??
+                      a['appointmentTime']?.toString() ??
+                      '',
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
+              color: AppTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(a['status']?.toString() ?? '',
-                style: const TextStyle(color: AppTheme.primary, fontSize: 11,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              a['status']?.toString() ?? '',
+              style: const TextStyle(
+                color: AppTheme.primary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
