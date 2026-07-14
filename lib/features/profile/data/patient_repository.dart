@@ -127,12 +127,12 @@ class PatientRepository {
         if (data is List) {
           items = data;
         } else if (data is Map) {
-          items = data['items'] ?? data['data'] ?? [];
+          items = data['bookingResponses'] ?? data['items'] ?? data['data'] ?? [];
         }
 
         final bookings = items
             .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
-            .where((b) => b.isCompleted) // Chỉ lấy các đơn hoàn thành
+            .where((b) => b.isCompleted || b.isConfirmed) // Lấy đơn hoàn thành hoặc đã xác nhận (có kết quả random)
             .toList();
 
         allBookings.addAll(bookings);
