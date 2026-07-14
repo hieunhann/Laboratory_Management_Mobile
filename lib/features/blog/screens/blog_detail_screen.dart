@@ -228,20 +228,24 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         // Meta
                         Row(
                           children: [
-                            const Icon(
-                              Icons.person_outline_rounded,
-                              size: 14,
-                              color: AppTheme.textHint,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _resolvedAuthorName ?? _blog!.authorName ?? 'Tác giả',
-                              style: const TextStyle(
-                                fontSize: 12,
+                            if (_resolvedAuthorName != null &&
+                                _resolvedAuthorName!.isNotEmpty &&
+                                _resolvedAuthorName != 'Tác giả') ...[
+                              const Icon(
+                                Icons.person_outline_rounded,
+                                size: 14,
                                 color: AppTheme.textHint,
                               ),
-                            ),
-                            const SizedBox(width: 16),
+                              const SizedBox(width: 4),
+                              Text(
+                                _resolvedAuthorName!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textHint,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                            ],
                             const Icon(
                               Icons.calendar_today_rounded,
                               size: 14,

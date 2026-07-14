@@ -190,12 +190,19 @@ class _BlogListScreenState extends State<BlogListScreen> {
                       maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 10),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.person_outline_rounded, size: 13, color: AppTheme.textHint),
-                      const SizedBox(width: 4),
-                      Text(blog.authorName ?? 'Tác giả',
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-                      const Spacer(),
+                      if (blog.authorName != null && blog.authorName!.isNotEmpty && blog.authorName != 'Tác giả')
+                        Row(
+                          children: [
+                            const Icon(Icons.person_outline_rounded, size: 13, color: AppTheme.textHint),
+                            const SizedBox(width: 4),
+                            Text(blog.authorName!,
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                          ],
+                        )
+                      else
+                        const SizedBox.shrink(),
                       if (blog.createdAt != null)
                         Text(FormatUtils.formatDate(blog.createdAt),
                             style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
