@@ -10,6 +10,8 @@ class BookingModel {
   final String? paymentStatus;
   final List<dynamic>? items;
   final DateTime? createdAt;
+  final int? bundleId;
+  final List<dynamic>? testCatalogs;
 
   BookingModel({
     this.bookingCode,
@@ -23,6 +25,8 @@ class BookingModel {
     this.paymentStatus,
     this.items,
     this.createdAt,
+    this.bundleId,
+    this.testCatalogs,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +50,8 @@ class BookingModel {
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
+      bundleId: json['bundleId'] as int?,
+      testCatalogs: json['testCatalogs'] as List<dynamic>?,
     );
   }
 
