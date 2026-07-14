@@ -16,16 +16,14 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
   void _checkUrl(String url) {
     final uri = Uri.parse(url);
     if (url.contains('successBooking') || 
-        url.contains('booking/success') ||
-        uri.queryParameters.containsKey('vnp_ResponseCode')) {
+        url.contains('failBooking') || 
+        url.contains('hema-link.io.vn')) {
       
       final responseCode = uri.queryParameters['vnp_ResponseCode'];
-      if (responseCode == '00') {
+      if (responseCode == '00' || url.contains('successBooking')) {
         Navigator.pop(context, true);
-      } else if (responseCode != null) {
-        Navigator.pop(context, false);
       } else {
-        Navigator.pop(context, true);
+        Navigator.pop(context, false);
       }
     }
   }

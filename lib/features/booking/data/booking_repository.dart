@@ -28,7 +28,7 @@ class BookingRepository {
 
   // ─── Bundles ──────────────────────────────────────────────
   static Future<List<BundleModel>> getAllBundles() async {
-    final response = await ApiClient.get('testorder/api/CatalogBundle',
+    final response = await ApiClient.get('testorder/api/TestBundle',
         params: {'pageNumber': 1, 'pageSize': 100});
     final items = _asList(response.data);
     return items
@@ -109,6 +109,31 @@ class BookingRepository {
     return d != null && d is Map<String, dynamic>
         ? BookingModel.fromJson(d)
         : null;
+  }
+
+  // ─── Get Test Result by Booking ID ──────────────────────────
+  static Future<Map<String, dynamic>?> getTestResultByBookingId(dynamic bookingId) async {
+    try {
+      final response = await ApiClient.get('testorder/api/TestResult/booking/$bookingId');
+      final data = response.data;
+      return data is Map<String, dynamic> ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ─── Lấy AI Review cho Booking ──────────────────────────────
+  static Future<List<dynamic>> getAiReview(dynamic bookingId) async {
+    try {
+      final response = await ApiClient.post('testorder/api/AiReview/booking/$bookingId');
+      final data = response.data;
+      if (data != null && data['results'] != null) {
+        return data['results'] as List<dynamic>;
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
   }
 
   // ─── VNPay URL ────────────────────────────────────────────

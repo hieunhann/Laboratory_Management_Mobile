@@ -6,13 +6,13 @@ class HomeRepository {
   // ─── Bundles (Gói xét nghiệm) ────────────────────────────
   static Future<List<BundleModel>> getBundles({int limit = 50, String? search}) async {
     try {
-      final Map<String, dynamic> params = {'page': 1, 'pageSize': limit};
+      final Map<String, dynamic> params = {'pageNumber': 1, 'pageSize': limit};
       if (search != null && search.isNotEmpty) {
         params['search'] = search;
       }
-      final response = await ApiClient.publicInstance.get(
+      final response = await ApiClient.get(
         'testorder/api/TestBundle',
-        queryParameters: params,
+        params: params,
       );
       final data = response.data;
       List items = data['items'] ?? data['data'] ?? data ?? [];

@@ -9,10 +9,30 @@ class MainScaffold extends StatelessWidget {
   const MainScaffold({super.key, required this.child});
 
   static const _navItems = [
-    _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Trang chủ', path: '/'),
-    _NavItem(icon: Icons.calendar_today_outlined, activeIcon: Icons.calendar_month_rounded, label: 'Đặt lịch', path: '/booking'),
-    _NavItem(icon: Icons.history_outlined, activeIcon: Icons.history_rounded, label: 'Lịch sử', path: '/history'),
-    _NavItem(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Hồ sơ', path: '/profile'),
+    _NavItem(
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home_rounded,
+      label: 'Trang chủ',
+      path: '/',
+    ),
+    _NavItem(
+      icon: Icons.calendar_today_outlined,
+      activeIcon: Icons.calendar_month_rounded,
+      label: 'Đặt lịch',
+      path: '/booking',
+    ),
+    _NavItem(
+      icon: Icons.history_outlined,
+      activeIcon: Icons.history_rounded,
+      label: 'Lịch sử',
+      path: '/history',
+    ),
+    _NavItem(
+      icon: Icons.person_outline_rounded,
+      activeIcon: Icons.person_rounded,
+      label: 'Hồ sơ',
+      path: '/profile',
+    ),
   ];
 
   int _getSelectedIndex(BuildContext context) {
@@ -37,7 +57,7 @@ class MainScaffold extends StatelessWidget {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, -4),
             ),
@@ -57,10 +77,12 @@ class MainScaffold extends StatelessWidget {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 4),
+                        vertical: 8,
+                        horizontal: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppTheme.primary.withOpacity(0.1)
+                            ? AppTheme.primary.withValues(alpha: 0.1)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                       ),

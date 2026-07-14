@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../config/app_theme.dart';
 import '../data/lab_staff_repository.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../booking/data/booking_repository.dart';
+import '../../medical_record/screens/medical_record_screen.dart';
 
 class AppointmentScheduleScreen extends StatefulWidget {
   const AppointmentScheduleScreen({super.key});
@@ -13,6 +15,8 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
   List<Map<String, dynamic>> _appointments = [];
   bool _loading = true;
   DateTime _selectedDate = DateTime.now();
+  Map<int, String> _bundleNames = {};
+  Map<int, String> _catalogNames = {};
 
   @override
   void initState() {
@@ -25,8 +29,31 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
     final dateStr = '${_selectedDate.year}-'
         '${_selectedDate.month.toString().padLeft(2, '0')}-'
         '${_selectedDate.day.toString().padLeft(2, '0')}';
-    final data = await LabStaffRepository.getAppointments(date: dateStr);
-    if (mounted) setState(() { _appointments = data; _loading = false; });
+
+    try {
+      final bundles = await BookingRepository.getAllBundles();
+      final catalogs = await BookingRepository.getAllCatalogs();
+      final Map<int, String> bNames = {};
+      final Map<int, String> cNames = {};
+      for (var b in bundles) {
+        if (b.bundleId != null && b.bundleName != null) bNames[b.bundleId!] = b.bundleName!;
+      }
+      for (var c in catalogs) {
+        if (c.catalogId != null && c.catalogName != null) cNames[c.catalogId!] = c.catalogName!;
+      }
+
+      final data = await LabStaffRepository.getAppointments(date: dateStr);
+      if (mounted) {
+        setState(() { 
+          _bundleNames = bNames;
+          _catalogNames = cNames;
+          _appointments = data; 
+          _loading = false; 
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _pickDate() async {
@@ -57,15 +84,14 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       ),
     );
     if (confirmed != true) return;
-    
-    try {
-      await LabStaffRepository.startInstrumentRun(bookingId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Đã bắt đầu xét nghiệm!'),
-          backgroundColor: AppTheme.success,
-        ));
-        
+    final error = await LabStaffRepository.startInstrumentRun(bookingId);
+    if (mounted) {
+      final success = error == null;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Lỗi: $error'),
+        backgroundColor: success ? AppTheme.success : AppTheme.error,
+      ));
+      if (success) {
         // Cập nhật State cục bộ thay vì load lại toàn bộ danh sách từ server
         setState(() {
           final index = _appointments.indexWhere((a) => a['bookingId']?.toString() == bookingId);
@@ -76,31 +102,6 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
             _appointments[index] = updatedItem;
           }
         });
-      }
-    } catch (e) {
-      print('=== [ERROR IN _startInstrumentRun] ===');
-      print(e);
-      if (mounted) {
-        String msg = e.toString();
-        final dynamic err = e;
-        try {
-          if (err.response != null) {
-            print('=== [RESPONSE STATUS CODE]: ${err.response?.statusCode}');
-            print('=== [RESPONSE DATA]: ${err.response?.data}');
-          }
-          if (err.response?.data != null) {
-            final data = err.response.data;
-            if (data is Map) {
-              msg = data['message']?.toString() 
-                 ?? data['Message']?.toString() 
-                 ?? msg;
-            }
-          }
-        } catch (_) {}
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Lỗi (Xem console): $msg'),
-          backgroundColor: AppTheme.error,
-        ));
       }
     }
   }
@@ -185,18 +186,43 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
 
   Widget _buildAppointmentCard(Map<String, dynamic> a) {
     final bookingId = a['bookingId']?.toString() ?? '';
+    final bookingCode = a['bookingCode']?.toString() ?? bookingId;
     final status = a['status']?.toString() ?? '';
     final canStart = status == 'Confirmed' || status == 'Pending';
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    String testName = '';
+    final bId = a['bundleId'];
+    if (bId != null && _bundleNames.containsKey(bId)) {
+      testName = _bundleNames[bId]!;
+    } else {
+      final tCats = a['testCatalogs'];
+      if (tCats is List && tCats.isNotEmpty) {
+        final names = tCats.map((id) => _catalogNames[id]).where((n) => n != null).toList();
+        if (names.isNotEmpty) testName = names.join(', ');
+      }
+    }
+
+    return InkWell(
+      onTap: () {
+        if (bookingId.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MedicalRecordScreen(bookingId: bookingId),
+            ),
+          );
+        }
+      },
+      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -215,7 +241,13 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
                   children: [
                     Text(a['patientName']?.toString() ?? 'Bệnh nhân',
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text('Booking #$bookingId',
+                    if (testName.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, bottom: 1),
+                        child: Text(testName,
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.primary)),
+                      ),
+                    Text('Booking #$bookingCode',
                         style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                   ],
                 ),
@@ -257,8 +289,9 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Color _statusColor(String status) {
     switch (status) {

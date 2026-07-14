@@ -28,8 +28,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   final _genders = ['Male', 'Female'];
   final _bloodTypes = [
-    'A_POSITIVE', 'A_NEGATIVE', 'B_POSITIVE', 'B_NEGATIVE',
-    'AB_POSITIVE', 'AB_NEGATIVE', 'O_POSITIVE', 'O_NEGATIVE'
+    'A_POSITIVE',
+    'A_NEGATIVE',
+    'B_POSITIVE',
+    'B_NEGATIVE',
+    'AB_POSITIVE',
+    'AB_NEGATIVE',
+    'O_POSITIVE',
+    'O_NEGATIVE',
   ];
 
   @override
@@ -68,7 +74,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   // Mở DatePicker để chọn ngày sinh
   Future<void> _selectDate(BuildContext context) async {
-    DateTime initial = DateTime.now().subtract(const Duration(days: 365 * 20)); // Mặc định 20 tuổi
+    DateTime initial = DateTime.now().subtract(
+      const Duration(days: 365 * 20),
+    ); // Mặc định 20 tuổi
     if (_dobCtrl.text.isNotEmpty) {
       try {
         initial = DateTime.parse(_dobCtrl.text.trim());
@@ -144,9 +152,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       if (result != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isEditMode
-                ? 'Cập nhật hồ sơ thành công!'
-                : 'Tạo hồ sơ thành công!'),
+            content: Text(
+              _isEditMode
+                  ? 'Cập nhật hồ sơ thành công!'
+                  : 'Tạo hồ sơ thành công!',
+            ),
             backgroundColor: AppTheme.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -199,16 +209,29 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           child: Column(
             children: [
               _buildCard([
-                _buildField('Họ và tên *', _nameCtrl, Icons.badge_outlined,
-                    validator: (v) =>
-                        (v?.isEmpty ?? true) ? 'Bắt buộc nhập họ tên' : null),
-                _buildField('Số điện thoại *', _phoneCtrl, Icons.phone_outlined,
-                    type: TextInputType.phone,
-                    validator: (v) =>
-                        (v?.isEmpty ?? true) ? 'Bắt buộc nhập số điện thoại' : null),
-                _buildField('Email', _emailCtrl, Icons.email_outlined,
-                    type: TextInputType.emailAddress),
-                
+                _buildField(
+                  'Họ và tên *',
+                  _nameCtrl,
+                  Icons.badge_outlined,
+                  validator: (v) =>
+                      (v?.isEmpty ?? true) ? 'Bắt buộc nhập họ tên' : null,
+                ),
+                _buildField(
+                  'Số điện thoại *',
+                  _phoneCtrl,
+                  Icons.phone_outlined,
+                  type: TextInputType.phone,
+                  validator: (v) => (v?.isEmpty ?? true)
+                      ? 'Bắt buộc nhập số điện thoại'
+                      : null,
+                ),
+                _buildField(
+                  'Email',
+                  _emailCtrl,
+                  Icons.email_outlined,
+                  type: TextInputType.emailAddress,
+                ),
+
                 // Ngày sinh: Dùng DatePicker
                 TextFormField(
                   controller: _dobCtrl,
@@ -216,14 +239,27 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   onTap: () => _selectDate(context),
                   decoration: const InputDecoration(
                     labelText: 'Ngày sinh (yyyy-MM-dd) *',
-                    prefixIcon: Icon(Icons.cake_outlined, color: AppTheme.primary, size: 20),
+                    prefixIcon: Icon(
+                      Icons.cake_outlined,
+                      color: AppTheme.primary,
+                      size: 20,
+                    ),
                   ),
-                  validator: (v) => (v?.isEmpty ?? true) ? 'Vui lòng chọn ngày sinh' : null,
+                  validator: (v) =>
+                      (v?.isEmpty ?? true) ? 'Vui lòng chọn ngày sinh' : null,
                 ),
 
-                _buildField('Địa chỉ', _addressCtrl, Icons.location_on_outlined),
+                _buildField(
+                  'Địa chỉ',
+                  _addressCtrl,
+                  Icons.location_on_outlined,
+                ),
                 _buildField('CCCD/CMND', _citizenCtrl, Icons.badge_rounded),
-                _buildField('Số BHYT', _insuranceCtrl, Icons.health_and_safety_outlined),
+                _buildField(
+                  'Số BHYT',
+                  _insuranceCtrl,
+                  Icons.health_and_safety_outlined,
+                ),
               ]),
               const SizedBox(height: 16),
               _buildCard([
@@ -321,13 +357,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(labelText: label),
       items: options
-          .map((o) => DropdownMenuItem(
-                value: o,
-                child: Text(labels?[o] ?? o),
-              ))
+          .map((o) => DropdownMenuItem(value: o, child: Text(labels?[o] ?? o)))
           .toList(),
       onChanged: onChanged,
     );

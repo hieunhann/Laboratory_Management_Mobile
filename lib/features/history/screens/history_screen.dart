@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/app_theme.dart';
 import '../../../core/network/api_client.dart';
+import '../../booking/data/booking_repository.dart';
 import '../../../shared/models/booking_model.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../../core/utils/format_utils.dart';
@@ -14,6 +15,8 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   List<BookingModel> _bookings = [];
+  Map<int, String> _bundleNames = {};
+  Map<int, String> _catalogNames = {};
   bool _loading = true;
   String? _error;
 
@@ -35,6 +38,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final patientList = patientData['items'] ?? patientData['data'] ?? [];
 
       if (patientList.isEmpty) {
+        debugPrint('--- DEBUG: patientList is empty ---');
         setState(() { _bookings = []; _loading = false; });
         return;
       }
@@ -42,13 +46,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
       // Lấy patientId đầu tiên (hoặc gom tất cả)
       final patientId = patientList[0]['patientId']?.toString()
           ?? patientList[0]['id']?.toString();
+          
+      debugPrint('--- DEBUG: Found patientId = $patientId ---');
 
       if (patientId == null) {
+        debugPrint('--- DEBUG: patientId is null ---');
         setState(() { _bookings = []; _loading = false; });
         return;
       }
 
       // Bước 2: Lấy booking theo patientId
+      debugPrint('--- DEBUG: Calling testorder/api/Booking/patient with patientId=$patientId ---');
       final response = await ApiClient.get(
         'testorder/api/Booking/patient',
         params: {
@@ -58,15 +66,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
         },
       );
       final data = response.data;
+      debugPrint('--- DEBUG: Booking API response data = $data ---');
+      
       List items = [];
       if (data is Map) {
-        // Backend trả về mảng danh sách trong biến bookingResponses
-        items = data['bookingResponses'] ?? data['items'] ?? data['data'] ?? [];
+        items = data['items'] ?? data['data'] ?? data['bookingResponses'] ?? [];
       } else if (data is List) {
         items = data;
       }
+      
+      debugPrint('--- DEBUG: Parsed items length = ${items.length} ---');
+
+      // Tải cache tên gói
+      final bundles = await BookingRepository.getAllBundles();
+      final catalogs = await BookingRepository.getAllCatalogs();
+      final Map<int, String> bNames = {};
+      final Map<int, String> cNames = {};
+      
+      for (var b in bundles) {
+        if (b.bundleId != null && b.bundleName != null) bNames[b.bundleId!] = b.bundleName!;
+      }
+      for (var c in catalogs) {
+        if (c.catalogId != null && c.catalogName != null) cNames[c.catalogId!] = c.catalogName!;
+      }
 
       setState(() {
+        _bundleNames = bNames;
+        _catalogNames = cNames;
         _bookings = items
             .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
             .where((b) => b.isCompleted) // CHỈ lấy những đơn đã Hoàn thành
@@ -74,6 +100,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _loading = false;
       });
     } catch (e) {
+      debugPrint('--- DEBUG: Exception in _fetchBookings = $e ---');
       setState(() { _error = 'Không tải được lịch sử: $e'; _loading = false; });
     }
   }
@@ -104,6 +131,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildBookingCard(BookingModel b) {
+    String testName = '';
+    if (b.bundleId != null && _bundleNames.containsKey(b.bundleId)) {
+      testName = _bundleNames[b.bundleId]!;
+    } else if (b.testCatalogs != null && b.testCatalogs!.isNotEmpty) {
+      final names = b.testCatalogs!.map((id) => _catalogNames[id]).where((n) => n != null).toList();
+      if (names.isNotEmpty) {
+        testName = names.join(', ');
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -130,11 +167,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (testName.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          testName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 16,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
                     Text(
-                      'Đơn #${b.bookingId}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 15,
-                        color: AppTheme.textPrimary,
+                      'Đơn #${b.bookingCode ?? b.bookingId}',
+                      style: TextStyle(
+                        fontWeight: testName.isNotEmpty ? FontWeight.w500 : FontWeight.w600, 
+                        fontSize: testName.isNotEmpty ? 13 : 15,
+                        color: testName.isNotEmpty ? AppTheme.textSecondary : AppTheme.textPrimary,
                       ),
                     ),
                     if (b.patientName != null)
@@ -171,7 +220,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
             ],
           ),
-          if (b.isCompleted) ...[
+          if (b.isCompleted || b.isConfirmed) ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => context.push('/medical-record?bookingId=${b.bookingId}'),

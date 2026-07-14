@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -22,10 +23,36 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loadingBundles = true;
   bool _loadingBlogs = true;
 
+  final ScrollController _bundleScrollController = ScrollController();
+  Timer? _bundleTimer;
+  double _scrollAmount = 192.0;
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    _startBundleTimer();
+  }
+
+  void _startBundleTimer() {
+    _bundleTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_bundleScrollController.hasClients && _bundles.isNotEmpty) {
+        double currentOffset = _bundleScrollController.offset;
+        double targetOffset = ((currentOffset / _scrollAmount).round() + 1) * _scrollAmount;
+        _bundleScrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _bundleTimer?.cancel();
+    _bundleScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -69,8 +96,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.medical_services_rounded,
-                        color: Colors.white, size: 18),
+                    child: const Icon(
+                      Icons.medical_services_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   const Text(
@@ -89,8 +119,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: const CircleAvatar(
                       radius: 16,
                       backgroundColor: AppTheme.surfaceVariant,
-                      child: Icon(Icons.person_rounded,
-                          size: 18, color: AppTheme.primary),
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: 18,
+                        color: AppTheme.primary,
+                      ),
                     ),
                     onPressed: () => context.push('/profile'),
                   )
@@ -177,15 +210,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
                         '🏥 Phòng xét nghiệm hiện đại',
-                        style:
-                            TextStyle(color: Colors.white70, fontSize: 11),
+                        style: TextStyle(color: Colors.white70, fontSize: 11),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -201,10 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Kết quả nhanh chóng, chính xác\nvà bảo mật thông tin',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                   ],
                 ),
@@ -214,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -283,9 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: actions
-            .map((a) => _buildQuickActionItem(a))
-            .toList(),
+        children: actions.map((a) => _buildQuickActionItem(a)).toList(),
       ),
     );
   }
@@ -321,10 +350,26 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─── Services Grid ────────────────────────────────────────
   Widget _buildServicesGrid() {
     final services = [
-      {'icon': Icons.bloodtype_rounded, 'name': 'Xét nghiệm máu', 'color': AppTheme.accent},
-      {'icon': Icons.biotech_rounded, 'name': 'Xét nghiệm tổng quát', 'color': AppTheme.secondary},
-      {'icon': Icons.monitor_heart_rounded, 'name': 'Kiểm tra tim mạch', 'color': AppTheme.primary},
-      {'icon': Icons.science_rounded, 'name': 'Xét nghiệm sinh hóa', 'color': const Color(0xFF7B1FA2)},
+      {
+        'icon': Icons.bloodtype_rounded,
+        'name': 'Xét nghiệm máu',
+        'color': AppTheme.accent,
+      },
+      {
+        'icon': Icons.biotech_rounded,
+        'name': 'Xét nghiệm tổng quát',
+        'color': AppTheme.secondary,
+      },
+      {
+        'icon': Icons.monitor_heart_rounded,
+        'name': 'Kiểm tra tim mạch',
+        'color': AppTheme.primary,
+      },
+      {
+        'icon': Icons.science_rounded,
+        'name': 'Xét nghiệm sinh hóa',
+        'color': const Color(0xFF7B1FA2),
+      },
     ];
 
     return Padding(
@@ -356,11 +401,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: (s['color'] as Color).withOpacity(0.1),
+                      color: (s['color'] as Color).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(s['icon'] as IconData,
-                        color: s['color'] as Color, size: 20),
+                    child: Icon(
+                      s['icon'] as IconData,
+                      color: s['color'] as Color,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -400,23 +448,32 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth - 48) / 2; // 16 lề trái + 16 lề phải + 16 khoảng cách giữa 2 thẻ
+    _scrollAmount = cardWidth + 16;
+
     return SizedBox(
       height: 160,
-      child: ListView.separated(
+      child: ListView.builder(
+        controller: _bundleScrollController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _bundles.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, i) => _buildBundleCard(_bundles[i]),
+        itemBuilder: (_, i) {
+          final bundle = _bundles[i % _bundles.length];
+          return Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _buildBundleCard(bundle, width: cardWidth),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBundleCard(BundleModel bundle) {
+  Widget _buildBundleCard(BundleModel bundle, {double width = 180}) {
     return GestureDetector(
       onTap: () => context.push('/bundles/${bundle.bundleId}'),
       child: Container(
-        width: 180,
+        width: width,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -430,11 +487,14 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.1),
+                color: AppTheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.medical_services_rounded,
-                  color: AppTheme.primary, size: 20),
+              child: const Icon(
+                Icons.medical_services_rounded,
+                color: AppTheme.primary,
+                size: 20,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
@@ -498,11 +558,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: _blogs
-            .map((b) => _buildBlogCard(b))
-            .toList(),
-      ),
+      child: Column(children: _blogs.map((b) => _buildBlogCard(b)).toList()),
     );
   }
 
@@ -527,8 +583,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppTheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
-              child: const Icon(Icons.article_rounded,
-                  color: AppTheme.primary, size: 32),
+              child: const Icon(
+                Icons.article_rounded,
+                color: AppTheme.primary,
+                size: 32,
+              ),
             ),
             const SizedBox(width: 12),
             // Content
@@ -568,8 +627,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                size: 14, color: AppTheme.textHint),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: AppTheme.textHint,
+            ),
           ],
         ),
       ),
