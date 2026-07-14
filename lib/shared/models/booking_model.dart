@@ -3,6 +3,8 @@ class BookingModel {
   final dynamic bookingId;
   final String? patientId;
   final String? patientName;
+  final String? patientPhoneNumber;
+  final String? patientEmail;
   final String? appointmentDate;
   final String? appointmentTime;
   final String? status;
@@ -18,6 +20,8 @@ class BookingModel {
     this.bookingId,
     this.patientId,
     this.patientName,
+    this.patientPhoneNumber,
+    this.patientEmail,
     this.appointmentDate,
     this.appointmentTime,
     this.status,
@@ -36,6 +40,8 @@ class BookingModel {
       bookingId: json['bookingId'] ?? json['id'],
       patientId: json['patientId']?.toString(),
       patientName: json['patientName']?.toString(),
+      patientPhoneNumber: json['patientPhoneNumber']?.toString(),
+      patientEmail: json['patientEmail']?.toString(),
       appointmentDate: json['appointmentDate']?.toString() ??
           json['date']?.toString() ?? 
           slotInfo?['appointmentDate']?.toString(),

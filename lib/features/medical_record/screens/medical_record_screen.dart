@@ -199,6 +199,19 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
       }
     }
 
+    IconData statusIcon = Icons.info_outline_rounded;
+    Color statusColor = AppTheme.primary;
+    if (b.isCancelled) {
+      statusIcon = Icons.cancel_rounded;
+      statusColor = AppTheme.error;
+    } else if (b.isCompleted) {
+      statusIcon = Icons.check_circle_rounded;
+      statusColor = AppTheme.success;
+    } else {
+      statusIcon = Icons.pending_actions_rounded;
+      statusColor = AppTheme.warning;
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -213,7 +226,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
             ),
             child: Column(
               children: [
-                const Icon(Icons.check_circle_rounded, size: 48, color: AppTheme.success),
+                Icon(statusIcon, size: 48, color: statusColor),
                 const SizedBox(height: 12),
                 if (testName.isNotEmpty)
                   Padding(
@@ -241,6 +254,10 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                 const Divider(),
                 const SizedBox(height: 16),
                 _detailRow('Bệnh nhân', b.patientName ?? ''),
+                if (b.patientPhoneNumber != null && b.patientPhoneNumber!.isNotEmpty)
+                  _detailRow('Số điện thoại', b.patientPhoneNumber!),
+                if (b.patientEmail != null && b.patientEmail!.isNotEmpty)
+                  _detailRow('Email', b.patientEmail!),
                 _detailRow('Trạng thái', FormatUtils.formatBookingStatus(b.status)),
                 _detailRow('Thanh toán', (b.isPaid || b.isCompleted) ? 'Đã thanh toán' : 'Chưa thanh toán'),
                 _detailRow('Tổng tiền', formattedPrice, isTotal: true),
