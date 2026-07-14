@@ -337,39 +337,46 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSpacing: 12,
         childAspectRatio: 2.5,
         children: services.map((s) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              boxShadow: AppTheme.cardShadow,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: (s['color'] as Color).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(s['icon'] as IconData,
-                      color: s['color'] as Color, size: 20),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    s['name'] as String,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textPrimary,
+          return GestureDetector(
+            onTap: () {
+              final name = s['name'] as String;
+              final keyword = name.replaceAll('Xét nghiệm', '').replaceAll('Kiểm tra', '').trim();
+              context.push('/bundles?search=$keyword');
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                boxShadow: AppTheme.cardShadow,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: (s['color'] as Color).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    child: Icon(s['icon'] as IconData,
+                        color: s['color'] as Color, size: 20),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      s['name'] as String,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),
@@ -407,7 +414,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBundleCard(BundleModel bundle) {
     return GestureDetector(
-      onTap: () => context.push('/booking?bundleId=${bundle.bundleId}'),
+      onTap: () => context.push('/bundles/${bundle.bundleId}'),
       child: Container(
         width: 180,
         padding: const EdgeInsets.all(14),

@@ -83,6 +83,21 @@ class AuthRepository {
     }
   }
 
+  // ─── Get User By ID ───────────────────────────────────────
+  static Future<UserModel?> getUserById(String id) async {
+    try {
+      final response = await ApiClient.get('iam/api/Users/$id');
+      final data = response.data;
+      final userData = data['data'] ?? data;
+      if (userData is Map<String, dynamic>) {
+        return UserModel.fromJson(userData);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // ─── Logout ───────────────────────────────────────────────
   static Future<void> logout() async {
     try {

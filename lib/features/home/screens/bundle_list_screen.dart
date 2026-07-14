@@ -5,7 +5,8 @@ import '../../../shared/models/bundle_model.dart';
 import '../data/home_repository.dart';
 
 class BundleListScreen extends StatefulWidget {
-  const BundleListScreen({super.key});
+  final String? search;
+  const BundleListScreen({super.key, this.search});
 
   @override
   State<BundleListScreen> createState() => _BundleListScreenState();
@@ -22,7 +23,7 @@ class _BundleListScreenState extends State<BundleListScreen> {
   }
 
   Future<void> _loadBundles() async {
-    final results = await HomeRepository.getBundles(limit: 50); // Lấy tối đa 50 gói
+    final results = await HomeRepository.getBundles(limit: 50, search: widget.search); // Lấy tối đa 50 gói kèm search filter
     if (mounted) {
       setState(() {
         _bundles = results;
@@ -36,7 +37,9 @@ class _BundleListScreenState extends State<BundleListScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Tất cả gói xét nghiệm'),
+        title: Text(widget.search != null && widget.search!.isNotEmpty
+            ? 'Gói xét nghiệm ${widget.search}'
+            : 'Tất cả gói xét nghiệm'),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
@@ -55,14 +58,16 @@ class _BundleListScreenState extends State<BundleListScreen> {
   }
 
   Widget _buildBundleCard(BundleModel bundle) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () => context.push('/bundles/${bundle.bundleId}'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -124,6 +129,7 @@ class _BundleListScreenState extends State<BundleListScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

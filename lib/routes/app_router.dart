@@ -7,6 +7,7 @@ import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/home/screens/bundle_list_screen.dart';
+import '../features/home/screens/bundle_detail_screen.dart';
 import '../features/booking/screens/booking_screen.dart';
 import '../features/booking/screens/success_booking_screen.dart';
 import '../features/history/screens/history_screen.dart';
@@ -97,8 +98,10 @@ class AppRouter {
             ),
             GoRoute(
               path: '/bundles',
-              pageBuilder: (c, s) =>
-                  _noTransition(c, s, const BundleListScreen()),
+              pageBuilder: (c, s) {
+                final search = s.uri.queryParameters['search'];
+                return _noTransition(c, s, BundleListScreen(search: search));
+              },
             ),
             GoRoute(
               path: '/history',
@@ -143,6 +146,14 @@ class AppRouter {
             final bookingId = s.uri.queryParameters['bookingId'];
             return _slide(
                 c, s, SuccessBookingScreen(bookingId: bookingId));
+          },
+        ),
+        GoRoute(
+          path: '/bundles/:id',
+          pageBuilder: (c, s) {
+            final idStr = s.pathParameters['id']!;
+            final id = int.tryParse(idStr) ?? 0;
+            return _slide(c, s, BundleDetailScreen(bundleId: id));
           },
         ),
 

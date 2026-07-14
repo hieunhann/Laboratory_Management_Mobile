@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:provider/provider.dart';
 import '../../../config/app_theme.dart';
 import '../data/blog_repository.dart';
+import '../../auth/data/auth_repository.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../shared/models/blog_model.dart';
 import '../../../core/utils/format_utils.dart';
 
@@ -15,6 +18,7 @@ class BlogDetailScreen extends StatefulWidget {
 class _BlogDetailScreenState extends State<BlogDetailScreen> {
   BlogModel? _blog;
   List<Map<String, dynamic>> _comments = [];
+  Map<String, String> _userNames = {};
   bool _loading = true;
   final _commentCtrl = TextEditingController();
   bool _submitting = false;
@@ -37,10 +41,33 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
       BlogRepository.getBlogById(widget.postId),
       BlogRepository.getComments(widget.postId),
     ]);
+    
+    final blog = results[0] as BlogModel?;
+    final comments = results[1] as List<Map<String, dynamic>>;
+
+    // Trích xuất các userId độc nhất
+    final uniqueUserIds = comments
+        .map((c) => c['userId']?.toString() ?? c['UserId']?.toString())
+        .where((id) => id != null && id.isNotEmpty)
+        .toSet();
+
+    final namesMap = <String, String>{};
+    await Future.wait(uniqueUserIds.map((userId) async {
+      try {
+        final user = await AuthRepository.getUserById(userId!);
+        if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
+          namesMap[userId] = user.fullName!;
+        }
+      } catch (_) {
+        // Bỏ qua lỗi kết nối đơn lẻ
+      }
+    }));
+
     if (mounted) {
       setState(() {
-        _blog = results[0] as BlogModel?;
-        _comments = results[1] as List<Map<String, dynamic>>;
+        _blog = blog;
+        _comments = comments;
+        _userNames = namesMap;
         _loading = false;
       });
     }
@@ -49,11 +76,19 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
   Future<void> _submitComment() async {
     if (_commentCtrl.text.trim().isEmpty) return;
     setState(() => _submitting = true);
+
+    String? currentUserId;
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      currentUserId = authProvider.currentUser?.userId;
+    } catch (_) {}
+
     final success = await BlogRepository.createComment({
       'postId': int.tryParse(widget.postId) ?? widget.postId,
       'content': _commentCtrl.text.trim(),
       'commentId': 0,
       'isUpdated': false,
+      if (currentUserId != null) 'userId': currentUserId,
     });
     if (success && mounted) {
       _commentCtrl.clear();
@@ -190,6 +225,8 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
   }
 
   Widget _buildCommentCard(Map<String, dynamic> c) {
+    final userId = c['userId']?.toString() ?? c['UserId']?.toString() ?? '';
+    final displayName = _userNames[userId] ?? (userId.isNotEmpty ? userId : 'Người dùng');
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -211,7 +248,7 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c['userId']?.toString() ?? 'Người dùng',
+                Text(displayName,
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(c['content']?.toString() ?? '',
