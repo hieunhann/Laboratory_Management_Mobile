@@ -46,11 +46,11 @@ class BlogModel {
       status: json['status'] as int?,
       categoryId: json['categoryId'] as int?,
       categoryName: json['categoryName']?.toString(),
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'].toString())
+      createdAt: (json['createdDate'] ?? json['CreatedDate'] ?? json['createdAt'] ?? json['CreatedAt']) != null
+          ? DateTime.tryParse((json['createdDate'] ?? json['CreatedDate'] ?? json['createdAt'] ?? json['CreatedAt']).toString())
           : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'].toString())
+      updatedAt: (json['updatedDate'] ?? json['UpdatedDate'] ?? json['updatedAt'] ?? json['UpdatedAt']) != null
+          ? DateTime.tryParse((json['updatedDate'] ?? json['UpdatedDate'] ?? json['updatedAt'] ?? json['UpdatedAt']).toString())
           : null,
       commentCount: json['commentCount'] as int?,
     );
