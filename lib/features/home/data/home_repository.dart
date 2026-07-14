@@ -7,7 +7,7 @@ class HomeRepository {
   static Future<List<BundleModel>> getBundles({int limit = 6}) async {
     try {
       final response = await ApiClient.get(
-        'testorder/api/CatalogBundle',
+        'testorder/api/TestBundle',
         params: {'pageNumber': 1, 'pageSize': limit},
       );
       final data = response.data;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../config/app_theme.dart';
 import '../../../core/utils/auth_utils.dart';
 
@@ -37,7 +39,8 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF00897B), Color(0xFF26A69A)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                   boxShadow: AppTheme.elevatedShadow,
@@ -45,15 +48,28 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.medical_services_rounded,
-                        color: Colors.white, size: 40),
+                    const Icon(
+                      Icons.medical_services_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                     const SizedBox(height: 12),
-                    const Text('Cổng nhân viên phòng lab',
-                        style: TextStyle(color: Colors.white, fontSize: 20,
-                            fontWeight: FontWeight.w700)),
+                    const Text(
+                      'Cổng nhân viên phòng lab',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Vai trò: ${_role ?? "Đang tải..."}',
-                        style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    Text(
+                      'Vai trò: ${_role ?? "Đang tải..."}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -63,7 +79,8 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 16, mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
                   children: [
                     _buildMenuCard(
                       icon: Icons.dashboard_rounded,
@@ -75,13 +92,17 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
                       icon: Icons.calendar_month_rounded,
                       label: 'Lịch xét nghiệm',
                       color: AppTheme.secondary,
-                      onTap: () => context.push('/lab-staff/appointment-schedule'),
+                      onTap: () =>
+                          context.push('/lab-staff/appointment-schedule'),
                     ),
                     _buildMenuCard(
-                      icon: Icons.home_rounded,
-                      label: 'Về trang chủ',
-                      color: const Color(0xFF7B1FA2),
-                      onTap: () => context.go('/'),
+                      icon: Icons.logout_rounded,
+                      label: 'Đăng xuất',
+                      color: AppTheme.error,
+                      onTap: () async {
+                        await context.read<AuthProvider>().logout();
+                        if (context.mounted) context.go('/login');
+                      },
                     ),
                   ],
                 ),
@@ -111,18 +132,24 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 56, height: 56,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 28),
             ),
             const SizedBox(height: 12),
-            Text(label,
-                style: const TextStyle(fontWeight: FontWeight.w600,
-                    fontSize: 14, color: AppTheme.textPrimary),
-                textAlign: TextAlign.center),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: AppTheme.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

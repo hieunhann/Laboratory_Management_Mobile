@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
@@ -45,23 +44,46 @@ class AppRouter {
           '/lab-staff',
         ];
 
-        final needsAuth = protectedRoutes
-            .any((r) => state.matchedLocation.startsWith(r));
+        final needsAuth = protectedRoutes.any(
+          (r) => state.matchedLocation.startsWith(r),
+        );
 
         if (needsAuth && !isAuth) {
           return '/login';
         }
 
-        // Lab staff routes need specific role
+        final role = authProvider.role;
+        final isStaffRole =
+            role == 'Admin' ||
+            role == 'Manager' ||
+            role == 'LabUser' ||
+            role == 'Receptionist' ||
+            role == 'LabBlogger' ||
+            role == 'Technician' ||
+            role == 'Staff';
+
+        // Nếu đã đăng nhập và đang ở trang public (login/register) → redirect theo role
+        // Chỉ redirect khi KHÔNG đang loading (tránh redirect sớm khi đang gọi API login)
+        if (isAuth && isPublic && !authProvider.isLoading) {
+          debugPrint(
+            '====== [ROUTER] isAuth=$isAuth, role=$role, isStaff=$isStaffRole ======',
+          );
+          return isStaffRole ? '/lab-staff' : '/';
+        }
+
+        // Nếu là Staff, không được phép vào trang của Customer
+        if (isAuth && isStaffRole) {
+          final isStaffAllowedRoute =
+              state.matchedLocation.startsWith('/lab-staff') ||
+              state.matchedLocation == '/change-password';
+          if (!isStaffAllowedRoute) {
+            return '/lab-staff';
+          }
+        }
+
+        // Lab staff routes need specific role (đã được bao phủ một phần bởi logic trên, nhưng giữ lại cho chắc)
         if (state.matchedLocation.startsWith('/lab-staff') && isAuth) {
-          final role = authProvider.role;
-          final canAccess = role == 'Admin' ||
-              role == 'Manager' ||
-              role == 'LabUser' ||
-              role == 'Receptionist' ||
-              role == 'LabBlogger' ||
-              role == 'Technician';
-          if (!canAccess) return '/';
+          if (!isStaffRole) return '/';
         }
 
         return null;
@@ -73,18 +95,15 @@ class AppRouter {
           routes: [
             GoRoute(
               path: '/',
-              pageBuilder: (c, s) =>
-                  _noTransition(c, s, const HomeScreen()),
+              pageBuilder: (c, s) => _noTransition(c, s, const HomeScreen()),
             ),
             GoRoute(
               path: '/history',
-              pageBuilder: (c, s) =>
-                  _noTransition(c, s, const HistoryScreen()),
+              pageBuilder: (c, s) => _noTransition(c, s, const HistoryScreen()),
             ),
             GoRoute(
               path: '/profile',
-              pageBuilder: (c, s) =>
-                  _noTransition(c, s, const ProfileScreen()),
+              pageBuilder: (c, s) => _noTransition(c, s, const ProfileScreen()),
             ),
           ],
         ),
@@ -100,8 +119,7 @@ class AppRouter {
         ),
         GoRoute(
           path: '/forgot-password',
-          pageBuilder: (c, s) =>
-              _slide(c, s, const ForgotPasswordScreen()),
+          pageBuilder: (c, s) => _slide(c, s, const ForgotPasswordScreen()),
         ),
 
         // ─── Booking routes ───────────────────────────────────
@@ -113,16 +131,14 @@ class AppRouter {
           path: '/booking/success',
           pageBuilder: (c, s) {
             final bookingId = s.uri.queryParameters['bookingId'];
-            return _slide(
-                c, s, SuccessBookingScreen(bookingId: bookingId));
+            return _slide(c, s, SuccessBookingScreen(bookingId: bookingId));
           },
         ),
 
         // ─── Profile sub-routes ───────────────────────────────
         GoRoute(
           path: '/create-profile',
-          pageBuilder: (c, s) =>
-              _slide(c, s, const CreateProfileScreen()),
+          pageBuilder: (c, s) => _slide(c, s, const CreateProfileScreen()),
         ),
         GoRoute(
           path: '/profile/edit',
@@ -133,15 +149,16 @@ class AppRouter {
         ),
         GoRoute(
           path: '/change-password',
-          pageBuilder: (c, s) =>
-              _slide(c, s, const ChangePasswordScreen()),
+          pageBuilder: (c, s) => _slide(c, s, const ChangePasswordScreen()),
         ),
 
         // ─── Medical Record ───────────────────────────────────
         GoRoute(
           path: '/medical-record',
-          pageBuilder: (c, s) =>
-              _slide(c, s, const MedicalRecordScreen()),
+          pageBuilder: (c, s) {
+            final bookingId = s.uri.queryParameters['bookingId'];
+            return _slide(c, s, MedicalRecordScreen(bookingId: bookingId));
+          },
         ),
 
         // ─── Blog routes ──────────────────────────────────────
@@ -160,13 +177,11 @@ class AppRouter {
         // ─── Lab Staff routes ─────────────────────────────────
         GoRoute(
           path: '/lab-staff',
-          pageBuilder: (c, s) =>
-              _slide(c, s, const LabStaffLanding()),
+          pageBuilder: (c, s) => _slide(c, s, const LabStaffLanding()),
         ),
         GoRoute(
           path: '/lab-staff/dashboard',
-          pageBuilder: (c, s) =>
-              _slide(c, s, const LabStaffDashboard()),
+          pageBuilder: (c, s) => _slide(c, s, const LabStaffDashboard()),
         ),
         GoRoute(
           path: '/lab-staff/appointment-schedule',
@@ -178,7 +193,10 @@ class AppRouter {
   }
 
   static CustomTransitionPage _noTransition(
-      BuildContext c, GoRouterState s, Widget child) {
+    BuildContext c,
+    GoRouterState s,
+    Widget child,
+  ) {
     return CustomTransitionPage(
       key: s.pageKey,
       child: child,
@@ -187,7 +205,10 @@ class AppRouter {
   }
 
   static CustomTransitionPage _slide(
-      BuildContext c, GoRouterState s, Widget child) {
+    BuildContext c,
+    GoRouterState s,
+    Widget child,
+  ) {
     return CustomTransitionPage(
       key: s.pageKey,
       child: child,
@@ -195,10 +216,7 @@ class AppRouter {
         position: Tween<Offset>(
           begin: const Offset(1.0, 0.0),
           end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeInOut,
-        )),
+        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
         child: w,
       ),
     );

@@ -32,12 +32,16 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     if (success) {
       final role = auth.role;
+      debugPrint(
+        '====== [LOGIN_SCREEN] auth.role = "$role", going to ${(role == "LabUser" || role == "Receptionist" || role == "LabBlogger" || role == "Technician" || role == "Manager" || role == "Admin" || role == "Staff") ? "/lab-staff" : "/"} ======',
+      );
       if (role == 'LabUser' ||
           role == 'Receptionist' ||
           role == 'LabBlogger' ||
           role == 'Technician' ||
           role == 'Manager' ||
-          role == 'Admin') {
+          role == 'Admin' ||
+          role == 'Staff') {
         context.go('/lab-staff');
       } else {
         context.go('/');
@@ -62,11 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0D47A1),
-              Color(0xFF1565C0),
-              Color(0xFF1E88E5),
-            ],
+            colors: [Color(0xFF0D47A1), Color(0xFF1565C0), Color(0xFF1E88E5)],
           ),
         ),
         child: SafeArea(
@@ -83,10 +83,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withValues(alpha: 0.4),
                             width: 2,
                           ),
                         ),
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Hệ thống quản lý xét nghiệm',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
                         ),
                       ),
@@ -162,11 +162,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             keyboardType: TextInputType.text,
                             decoration: const InputDecoration(
                               labelText: 'Tên đăng nhập / Email',
-                              prefixIcon: Icon(Icons.person_outline_rounded,
-                                  color: AppTheme.primary),
+                              prefixIcon: Icon(
+                                Icons.person_outline_rounded,
+                                color: AppTheme.primary,
+                              ),
                             ),
-                            validator: (v) =>
-                                (v?.isEmpty ?? true) ? 'Vui lòng nhập tên đăng nhập' : null,
+                            validator: (v) => (v?.isEmpty ?? true)
+                                ? 'Vui lòng nhập tên đăng nhập'
+                                : null,
                           ),
                           const SizedBox(height: 16),
 
@@ -176,8 +179,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText: _obscurePassword,
                             decoration: InputDecoration(
                               labelText: 'Mật khẩu',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded,
-                                  color: AppTheme.primary),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                                color: AppTheme.primary,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
@@ -186,11 +191,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: AppTheme.textSecondary,
                                 ),
                                 onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword),
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
                               ),
                             ),
-                            validator: (v) =>
-                                (v?.isEmpty ?? true) ? 'Vui lòng nhập mật khẩu' : null,
+                            validator: (v) => (v?.isEmpty ?? true)
+                                ? 'Vui lòng nhập mật khẩu'
+                                : null,
                           ),
 
                           // Forgot password
@@ -211,7 +218,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               return SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: auth.isLoading ? null : _handleLogin,
+                                  onPressed: auth.isLoading
+                                      ? null
+                                      : _handleLogin,
                                   child: auth.isLoading
                                       ? const SizedBox(
                                           height: 20,
@@ -235,8 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               const Text(
                                 'Chưa có tài khoản? ',
-                                style:
-                                    TextStyle(color: AppTheme.textSecondary),
+                                style: TextStyle(color: AppTheme.textSecondary),
                               ),
                               GestureDetector(
                                 onTap: () => context.push('/register'),

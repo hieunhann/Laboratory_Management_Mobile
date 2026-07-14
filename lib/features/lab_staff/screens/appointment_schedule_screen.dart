@@ -57,10 +57,11 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       ),
     );
     if (confirmed != true) return;
-    final success = await LabStaffRepository.startInstrumentRun(bookingId);
+    final error = await LabStaffRepository.startInstrumentRun(bookingId);
     if (mounted) {
+      final success = error == null;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Có lỗi xảy ra'),
+        content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Lỗi: $error'),
         backgroundColor: success ? AppTheme.success : AppTheme.error,
       ));
     }
@@ -201,7 +202,7 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
             children: [
               const Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textSecondary),
               const SizedBox(width: 6),
-              Text(a['time']?.toString() ?? a['appointmentTime']?.toString() ?? '',
+              Text(a['time']?.toString() ?? a['slotInfo']?['timeBlock']?.toString() ?? a['appointmentTime']?.toString() ?? '',
                   style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
               const Spacer(),
               if (canStart && bookingId.isNotEmpty)

@@ -74,118 +74,168 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
           : _blog == null
-              ? const Center(child: Text('Không tìm thấy bài viết'))
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Hero image
-                      Container(
-                        height: 200,
-                        width: double.infinity,
-                        color: AppTheme.surfaceVariant,
-                        child: const Center(
-                          child: Icon(Icons.article_rounded, size: 64, color: AppTheme.primary),
-                        ),
+          ? const Center(child: Text('Không tìm thấy bài viết'))
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Hero image
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    color: AppTheme.surfaceVariant,
+                    child: const Center(
+                      child: Icon(
+                        Icons.article_rounded,
+                        size: 64,
+                        color: AppTheme.primary,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Category
-                            if (_blog!.categoryName != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(_blog!.categoryName!,
-                                    style: const TextStyle(
-                                        color: AppTheme.primary, fontSize: 12,
-                                        fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Category
+                        if (_blog!.categoryName != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _blog!.categoryName!,
+                              style: const TextStyle(
+                                color: AppTheme.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
-                            const SizedBox(height: 12),
-                            // Title
-                            Text(_blog!.displayTitle,
-                                style: const TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.w700,
-                                    color: AppTheme.textPrimary, height: 1.3)),
-                            const SizedBox(height: 12),
-                            // Meta
-                            Row(
-                              children: [
-                                const Icon(Icons.person_outline_rounded,
-                                    size: 14, color: AppTheme.textHint),
-                                const SizedBox(width: 4),
-                                Text(_blog!.authorName ?? 'Tác giả',
-                                    style: const TextStyle(fontSize: 12, color: AppTheme.textHint)),
-                                const SizedBox(width: 16),
-                                const Icon(Icons.calendar_today_rounded,
-                                    size: 14, color: AppTheme.textHint),
-                                const SizedBox(width: 4),
-                                Text(FormatUtils.formatDate(_blog!.createdAt),
-                                    style: const TextStyle(fontSize: 12, color: AppTheme.textHint)),
-                              ],
                             ),
-                            const SizedBox(height: 16),
-                            const Divider(),
-                            const SizedBox(height: 8),
-                            // Content
-                            if (_blog!.content != null)
-                              Html(data: _blog!.content!,
-                                  style: {
-                                    'body': Style(
-                                      fontSize: FontSize(15),
-                                      color: AppTheme.textPrimary,
-                                      lineHeight: const LineHeight(1.6),
-                                    ),
-                                  }),
-                            const SizedBox(height: 24),
-                            // Comments section
-                            Text('Bình luận (${_comments.length})',
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w700,
-                                    color: AppTheme.textPrimary)),
-                            const SizedBox(height: 12),
-                            // Comment input
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _commentCtrl,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Viết bình luận...',
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 10),
-                                    ),
-                                    maxLines: 2,
-                                    minLines: 1,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  onPressed: _submitting ? null : _submitComment,
-                                  icon: _submitting
-                                      ? const SizedBox(width: 20, height: 20,
-                                          child: CircularProgressIndicator(strokeWidth: 2))
-                                      : const Icon(Icons.send_rounded, color: AppTheme.primary),
-                                ),
-                              ],
+                          ),
+                        const SizedBox(height: 12),
+                        // Title
+                        Text(
+                          _blog!.displayTitle,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Meta
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.person_outline_rounded,
+                              size: 14,
+                              color: AppTheme.textHint,
                             ),
-                            const SizedBox(height: 16),
-                            // Comments list
-                            ..._comments.map((c) => _buildCommentCard(c)),
-                            const SizedBox(height: 32),
+                            const SizedBox(width: 4),
+                            Text(
+                              _blog!.authorName ?? 'Tác giả',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textHint,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Icon(
+                              Icons.calendar_today_rounded,
+                              size: 14,
+                              color: AppTheme.textHint,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              FormatUtils.formatDate(_blog!.createdAt),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textHint,
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 8),
+                        // Content
+                        if (_blog!.content != null)
+                          Html(
+                            data: _blog!.content!,
+                            style: {
+                              'body': Style(
+                                fontSize: FontSize(15),
+                                color: AppTheme.textPrimary,
+                                lineHeight: const LineHeight(1.6),
+                              ),
+                            },
+                          ),
+                        const SizedBox(height: 24),
+                        // Comments section
+                        Text(
+                          'Bình luận (${_comments.length})',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Comment input
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _commentCtrl,
+                                decoration: const InputDecoration(
+                                  hintText: 'Viết bình luận...',
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                ),
+                                maxLines: 2,
+                                minLines: 1,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: _submitting ? null : _submitComment,
+                              icon: _submitting
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.send_rounded,
+                                      color: AppTheme.primary,
+                                    ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // Comments list
+                        ..._comments.map((c) => _buildCommentCard(c)),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
-                ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -204,18 +254,32 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
           CircleAvatar(
             radius: 16,
             backgroundColor: AppTheme.surfaceVariant,
-            child: const Icon(Icons.person_rounded, size: 16, color: AppTheme.primary),
+            child: const Icon(
+              Icons.person_rounded,
+              size: 16,
+              color: AppTheme.primary,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c['userId']?.toString() ?? 'Người dùng',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text(
+                  c['userId']?.toString() ?? 'Người dùng',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(c['content']?.toString() ?? '',
-                    style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                Text(
+                  c['content']?.toString() ?? '',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),

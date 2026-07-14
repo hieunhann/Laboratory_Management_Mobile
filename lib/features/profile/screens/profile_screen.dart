@@ -27,7 +27,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadProfile() async {
     setState(() => _loading = true);
     final patient = await PatientRepository.getMyProfile();
-    if (mounted) setState(() { _patient = patient; _loading = false; });
+    if (mounted)
+      setState(() {
+        _patient = patient;
+        _loading = false;
+      });
   }
 
   @override
@@ -48,7 +52,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
           : RefreshIndicator(
               color: AppTheme.primary,
               onRefresh: _loadProfile,
@@ -59,9 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // ─── Header ──────────────────────────────
                     Container(
                       width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                      ),
+                      decoration: const BoxDecoration(color: Colors.white),
                       child: Column(
                         children: [
                           const SizedBox(height: 24),
@@ -81,7 +85,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            _patient?.displayName ?? auth.currentUser?.fullName ?? 'Người dùng',
+                            _patient?.displayName ??
+                                auth.currentUser?.fullName ??
+                                'Người dùng',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -105,14 +111,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // ─── Info Section ─────────────────────────
                     if (_patient != null) ...[
                       _buildInfoCard([
-                        _InfoItem(Icons.badge_outlined, 'Họ và tên', _patient!.fullName),
-                        _InfoItem(Icons.phone_outlined, 'Số điện thoại', _patient!.phone),
-                        _InfoItem(Icons.email_outlined, 'Email', _patient!.email),
-                        _InfoItem(Icons.person_outline_rounded, 'Giới tính', FormatUtils.formatGender(_patient!.gender)),
-                        _InfoItem(Icons.cake_outlined, 'Ngày sinh', _patient!.dateOfBirth),
-                        _InfoItem(Icons.location_on_outlined, 'Địa chỉ', _patient!.address),
-                        _InfoItem(Icons.badge_rounded, 'CCCD/CMND', _patient!.citizenId),
-                        _InfoItem(Icons.health_and_safety_outlined, 'Bảo hiểm y tế', _patient!.insuranceNumber),
+                        _InfoItem(
+                          Icons.badge_outlined,
+                          'Họ và tên',
+                          _patient!.fullName,
+                        ),
+                        _InfoItem(
+                          Icons.phone_outlined,
+                          'Số điện thoại',
+                          _patient!.phone,
+                        ),
+                        _InfoItem(
+                          Icons.email_outlined,
+                          'Email',
+                          _patient!.email,
+                        ),
+                        _InfoItem(
+                          Icons.person_outline_rounded,
+                          'Giới tính',
+                          FormatUtils.formatGender(_patient!.gender),
+                        ),
+                        _InfoItem(
+                          Icons.cake_outlined,
+                          'Ngày sinh',
+                          _patient!.dateOfBirth,
+                        ),
+                        _InfoItem(
+                          Icons.location_on_outlined,
+                          'Địa chỉ',
+                          _patient!.address,
+                        ),
+                        _InfoItem(
+                          Icons.badge_rounded,
+                          'CCCD/CMND',
+                          _patient!.citizenId,
+                        ),
+                        _InfoItem(
+                          Icons.health_and_safety_outlined,
+                          'Bảo hiểm y tế',
+                          _patient!.insuranceNumber,
+                        ),
                       ]),
                       const SizedBox(height: 16),
                     ] else ...[
@@ -122,17 +160,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // ─── Menu Options ─────────────────────────
                     _buildMenuCard([
-                      _MenuItem(Icons.edit_rounded, 'Chỉnh sửa hồ sơ',
-                          () => context.push(
-                              _patient != null ? '/profile/edit' : '/create-profile',
-                              extra: _patient,
-                          )),
-                      _MenuItem(Icons.medical_services_rounded, 'Kết quả xét nghiệm',
-                          () => context.push('/medical-record')),
-                      _MenuItem(Icons.article_rounded, 'Tin tức y tế',
-                          () => context.push('/blog')),
-                      _MenuItem(Icons.lock_outline_rounded, 'Đổi mật khẩu',
-                          () => context.push('/change-password')),
+                      _MenuItem(
+                        Icons.edit_rounded,
+                        'Chỉnh sửa hồ sơ',
+                        () async {
+                          final result = await context.push(
+                            _patient != null
+                                ? '/profile/edit'
+                                : '/create-profile',
+                            extra: _patient,
+                          );
+                          if (result == true) {
+                            _loadProfile();
+                          }
+                        },
+                      ),
+                      _MenuItem(
+                        Icons.medical_services_rounded,
+                        'Kết quả xét nghiệm',
+                        () => context.push('/medical-record'),
+                      ),
+                      _MenuItem(
+                        Icons.article_rounded,
+                        'Tin tức y tế',
+                        () => context.push('/blog'),
+                      ),
+                      _MenuItem(
+                        Icons.lock_outline_rounded,
+                        'Đổi mật khẩu',
+                        () => context.push('/change-password'),
+                      ),
                     ]),
                     const SizedBox(height: 32),
                   ],
@@ -156,8 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Column(
             children: [
               _buildInfoRow(e.value),
-              if (!isLast)
-                const Divider(height: 1, indent: 48),
+              if (!isLast) const Divider(height: 1, indent: 48),
             ],
           );
         }).toList(),
@@ -176,9 +232,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.label,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppTheme.textHint)),
+                Text(
+                  item.label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textHint,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   item.value ?? 'Chưa cập nhật',
@@ -207,18 +267,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: AppTheme.surfaceVariant,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
-          const Icon(Icons.person_add_alt_1_rounded,
-              size: 40, color: AppTheme.primary),
+          const Icon(
+            Icons.person_add_alt_1_rounded,
+            size: 40,
+            color: AppTheme.primary,
+          ),
           const SizedBox(height: 12),
-          const Text('Chưa có hồ sơ bệnh nhân',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
-              )),
+          const Text(
+            'Chưa có hồ sơ bệnh nhân',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           const Text(
             'Tạo hồ sơ để đặt lịch xét nghiệm',
@@ -226,7 +291,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context.push('/create-profile'),
+            onPressed: () async {
+              final result = await context.push('/create-profile');
+              if (result == true) {
+                _loadProfile();
+              }
+            },
             child: const Text('Tạo hồ sơ ngay'),
           ),
         ],
@@ -249,10 +319,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               ListTile(
                 leading: Icon(e.value.icon, color: AppTheme.primary, size: 22),
-                title: Text(e.value.label,
-                    style: const TextStyle(fontSize: 14)),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    size: 14, color: AppTheme.textHint),
+                title: Text(
+                  e.value.label,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: AppTheme.textHint,
+                ),
                 onTap: e.value.onTap,
               ),
               if (!isLast) const Divider(height: 1, indent: 56),

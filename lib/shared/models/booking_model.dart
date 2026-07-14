@@ -1,4 +1,5 @@
 class BookingModel {
+  final String? bookingCode;
   final dynamic bookingId;
   final String? patientId;
   final String? patientName;
@@ -11,6 +12,7 @@ class BookingModel {
   final DateTime? createdAt;
 
   BookingModel({
+    this.bookingCode,
     this.bookingId,
     this.patientId,
     this.patientName,
@@ -24,14 +26,19 @@ class BookingModel {
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
+    var slotInfo = json['slotInfo'] ?? json['slotDTO'];
     return BookingModel(
+      bookingCode: json['bookingCode']?.toString(),
       bookingId: json['bookingId'] ?? json['id'],
       patientId: json['patientId']?.toString(),
       patientName: json['patientName']?.toString(),
       appointmentDate: json['appointmentDate']?.toString() ??
-          json['date']?.toString(),
+          json['date']?.toString() ?? 
+          slotInfo?['appointmentDate']?.toString(),
       appointmentTime: json['appointmentTime']?.toString() ??
-          json['time']?.toString(),
+          json['time']?.toString() ??
+          slotInfo?['timeBlock']?.toString() ??
+          slotInfo?['time']?.toString(),
       status: json['status']?.toString(),
       totalAmount: json['totalAmount'] as num? ?? json['amount'] as num?,
       paymentStatus: json['paymentStatus']?.toString(),
@@ -45,5 +52,8 @@ class BookingModel {
   bool get isPending => status == 'Pending';
   bool get isCompleted => status == 'Completed';
   bool get isCancelled => status == 'Cancelled';
-  bool get isPaid => paymentStatus == 'Paid';
+  bool get isPaid => paymentStatus == 'Paid' || 
+                     status == 'Confirmed' || 
+                     status == 'InProgress' || 
+                     status == 'Completed';
 }

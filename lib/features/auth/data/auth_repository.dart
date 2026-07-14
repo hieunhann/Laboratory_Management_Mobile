@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../../shared/models/user_model.dart';
@@ -7,7 +6,9 @@ import '../../../shared/models/user_model.dart';
 class AuthRepository {
   // ─── Login ───────────────────────────────────────────────
   static Future<Map<String, dynamic>> login(
-      String username, String password) async {
+    String username,
+    String password,
+  ) async {
     final response = await ApiClient.post(
       'iam/api/Auth/login',
       data: {'username': username, 'password': password},
@@ -19,8 +20,7 @@ class AuthRepository {
         data['token'] ??
         data['data']?['accessToken'] ??
         data['data']?['token'];
-    final refreshToken =
-        data['refreshToken'] ?? data['data']?['refreshToken'];
+    final refreshToken = data['refreshToken'] ?? data['data']?['refreshToken'];
     if (accessToken != null) {
       await SecureStorageService.saveAccessToken(accessToken.toString());
     }
@@ -32,8 +32,12 @@ class AuthRepository {
 
   // ─── Register ─────────────────────────────────────────────
   static Future<Map<String, dynamic>> register(
-      Map<String, dynamic> payload) async {
-    final response = await ApiClient.post('iam/api/Auth/register', data: payload);
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await ApiClient.post(
+      'iam/api/Auth/register',
+      data: payload,
+    );
     return response.data is Map<String, dynamic> ? response.data : {};
   }
 
@@ -55,13 +59,12 @@ class AuthRepository {
 
   // ─── Change Password ──────────────────────────────────────
   static Future<void> changePassword(
-      String currentPassword, String newPassword) async {
+    String currentPassword,
+    String newPassword,
+  ) async {
     await ApiClient.post(
       'iam/api/Auth/change-password',
-      data: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      },
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
   }
 
