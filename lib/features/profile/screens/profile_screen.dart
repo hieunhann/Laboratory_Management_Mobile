@@ -27,11 +27,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadProfile() async {
     setState(() => _loading = true);
     final patient = await PatientRepository.getMyProfile();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _patient = patient;
         _loading = false;
       });
+    }
   }
 
   @override

@@ -23,7 +23,10 @@ class _BundleListScreenState extends State<BundleListScreen> {
   }
 
   Future<void> _loadBundles() async {
-    final results = await HomeRepository.getBundles(limit: 50, search: widget.search); // Lấy tối đa 50 gói kèm search filter
+    final results = await HomeRepository.getBundles(
+      limit: 50,
+      search: widget.search,
+    ); // Lấy tối đa 50 gói kèm search filter
     if (mounted) {
       setState(() {
         _bundles = results;
@@ -37,23 +40,32 @@ class _BundleListScreenState extends State<BundleListScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text(widget.search != null && widget.search!.isNotEmpty
-            ? 'Gói xét nghiệm ${widget.search}'
-            : 'Tất cả gói xét nghiệm'),
+        title: Text(
+          widget.search != null && widget.search!.isNotEmpty
+              ? 'Gói xét nghiệm ${widget.search}'
+              : 'Tất cả gói xét nghiệm',
+        ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
           : _bundles.isEmpty
-              ? const Center(child: Text('Không có gói xét nghiệm nào', style: TextStyle(color: AppTheme.textSecondary)))
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _bundles.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final bundle = _bundles[index];
-                    return _buildBundleCard(bundle);
-                  },
-                ),
+          ? const Center(
+              child: Text(
+                'Không có gói xét nghiệm nào',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: _bundles.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final bundle = _bundles[index];
+                return _buildBundleCard(bundle);
+              },
+            ),
     );
   }
 
@@ -68,68 +80,78 @@ class _BundleListScreenState extends State<BundleListScreen> {
           boxShadow: AppTheme.cardShadow,
         ),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.medical_services_rounded,
+                    color: AppTheme.primary,
+                    size: 28,
+                  ),
                 ),
-                child: const Icon(Icons.medical_services_rounded, color: AppTheme.primary, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      bundle.displayName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: AppTheme.textPrimary,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        bundle.displayName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      bundle.displayPrice,
-                      style: const TextStyle(
-                        color: AppTheme.primary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
+                      const SizedBox(height: 4),
+                      Text(
+                        bundle.displayPrice,
+                        style: const TextStyle(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+              ],
+            ),
+            if (bundle.description != null &&
+                bundle.description!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              Text(
+                bundle.description!,
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
-          ),
-          if (bundle.description != null && bundle.description!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            Text(
-              bundle.description!,
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () =>
+                  context.push('/booking?bundleId=${bundle.bundleId}'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+              ),
+              child: const Text('Đặt lịch ngay'),
             ),
           ],
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => context.push('/booking?bundleId=${bundle.bundleId}'),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 44),
-            ),
-            child: const Text('Đặt lịch ngay'),
-          ),
-        ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

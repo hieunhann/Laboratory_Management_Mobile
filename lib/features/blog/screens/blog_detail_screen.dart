@@ -19,9 +19,9 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
   BlogModel? _blog;
   List<Map<String, dynamic>> _comments = [];
   Map<String, String> _userNames = {};
-  Map<int, String?> _userReactions = {};
-  Map<int, int> _commentLikes = {};
-  Map<int, int> _commentDislikes = {};
+  final Map<int, String?> _userReactions = {};
+  final Map<int, int> _commentLikes = {};
+  final Map<int, int> _commentDislikes = {};
   String? _resolvedAuthorName;
   bool _loading = true;
   final _commentCtrl = TextEditingController();
@@ -45,7 +45,7 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
       BlogRepository.getBlogById(widget.postId),
       BlogRepository.getComments(widget.postId),
     ]);
-    
+
     final blog = results[0] as BlogModel?;
     final comments = results[1] as List<Map<String, dynamic>>;
 
@@ -56,16 +56,20 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
         .toSet();
 
     final namesMap = <String, String>{};
-    await Future.wait(uniqueUserIds.map((userId) async {
-      try {
-        final user = await AuthRepository.getUserById(userId!);
-        if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
-          namesMap[userId] = user.fullName!;
+    await Future.wait(
+      uniqueUserIds.map((userId) async {
+        try {
+          final user = await AuthRepository.getUserById(userId!);
+          if (user != null &&
+              user.fullName != null &&
+              user.fullName!.isNotEmpty) {
+            namesMap[userId] = user.fullName!;
+          }
+        } catch (_) {
+          // Bỏ qua lỗi kết nối đơn lẻ
         }
-      } catch (_) {
-        // Bỏ qua lỗi kết nối đơn lẻ
-      }
-    }));
+      }),
+    );
 
     // Khởi tạo số lượng likes/dislikes ngẫu nhiên giả lập cho mỗi comment
     for (var c in comments) {
@@ -81,7 +85,9 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
     if (blog != null && blog.authorId != null && blog.authorId!.isNotEmpty) {
       try {
         final user = await AuthRepository.getUserById(blog.authorId!);
-        if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
+        if (user != null &&
+            user.fullName != null &&
+            user.fullName!.isNotEmpty) {
           resolvedAuthor = user.fullName;
         }
       } catch (_) {
@@ -235,7 +241,9 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              _resolvedAuthorName ?? _blog!.authorName ?? 'Tác giả',
+                              _resolvedAuthorName ??
+                                  _blog!.authorName ??
+                                  'Tác giả',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.textHint,
@@ -333,10 +341,14 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
 
   Widget _buildCommentCard(Map<String, dynamic> c) {
     final userId = c['userId']?.toString() ?? c['UserId']?.toString() ?? '';
-    final displayName = _userNames[userId] ?? (userId.isNotEmpty ? userId : 'Người dùng');
-    
-    final createdDateStr = c['createdDate']?.toString() ?? c['CreatedDate']?.toString();
-    final parsedDate = createdDateStr != null ? DateTime.tryParse(createdDateStr) : null;
+    final displayName =
+        _userNames[userId] ?? (userId.isNotEmpty ? userId : 'Người dùng');
+
+    final createdDateStr =
+        c['createdDate']?.toString() ?? c['CreatedDate']?.toString();
+    final parsedDate = createdDateStr != null
+        ? DateTime.tryParse(createdDateStr)
+        : null;
     final dateText = FormatUtils.formatDateTime(parsedDate);
 
     final commentId = c['commentId'] as int? ?? c['CommentId'] as int? ?? 0;
@@ -412,17 +424,25 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              hasLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                              hasLiked
+                                  ? Icons.thumb_up_rounded
+                                  : Icons.thumb_up_outlined,
                               size: 14,
-                              color: hasLiked ? AppTheme.primary : AppTheme.textHint,
+                              color: hasLiked
+                                  ? AppTheme.primary
+                                  : AppTheme.textHint,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               likesCount.toString(),
                               style: TextStyle(
                                 fontSize: 11,
-                                color: hasLiked ? AppTheme.primary : AppTheme.textHint,
-                                fontWeight: hasLiked ? FontWeight.bold : FontWeight.normal,
+                                color: hasLiked
+                                    ? AppTheme.primary
+                                    : AppTheme.textHint,
+                                fontWeight: hasLiked
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                             ),
                           ],
@@ -434,17 +454,25 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              hasDisliked ? Icons.thumb_down_rounded : Icons.thumb_down_outlined,
+                              hasDisliked
+                                  ? Icons.thumb_down_rounded
+                                  : Icons.thumb_down_outlined,
                               size: 14,
-                              color: hasDisliked ? Colors.red : AppTheme.textHint,
+                              color: hasDisliked
+                                  ? Colors.red
+                                  : AppTheme.textHint,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               dislikesCount.toString(),
                               style: TextStyle(
                                 fontSize: 11,
-                                color: hasDisliked ? Colors.red : AppTheme.textHint,
-                                fontWeight: hasDisliked ? FontWeight.bold : FontWeight.normal,
+                                color: hasDisliked
+                                    ? Colors.red
+                                    : AppTheme.textHint,
+                                fontWeight: hasDisliked
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                             ),
                           ],

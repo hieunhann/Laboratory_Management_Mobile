@@ -8,7 +8,8 @@ import '../../medical_record/screens/medical_record_screen.dart';
 class AppointmentScheduleScreen extends StatefulWidget {
   const AppointmentScheduleScreen({super.key});
   @override
-  State<AppointmentScheduleScreen> createState() => _AppointmentScheduleScreenState();
+  State<AppointmentScheduleScreen> createState() =>
+      _AppointmentScheduleScreenState();
 }
 
 class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
@@ -26,7 +27,8 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
 
   Future<void> _loadAppointments() async {
     setState(() => _loading = true);
-    final dateStr = '${_selectedDate.year}-'
+    final dateStr =
+        '${_selectedDate.year}-'
         '${_selectedDate.month.toString().padLeft(2, '0')}-'
         '${_selectedDate.day.toString().padLeft(2, '0')}';
 
@@ -36,19 +38,21 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       final Map<int, String> bNames = {};
       final Map<int, String> cNames = {};
       for (var b in bundles) {
-        if (b.bundleId != null && b.bundleName != null) bNames[b.bundleId!] = b.bundleName!;
+        if (b.bundleId != null && b.bundleName != null)
+          bNames[b.bundleId!] = b.bundleName!;
       }
       for (var c in catalogs) {
-        if (c.catalogId != null && c.catalogName != null) cNames[c.catalogId!] = c.catalogName!;
+        if (c.catalogId != null && c.catalogName != null)
+          cNames[c.catalogId!] = c.catalogName!;
       }
 
       final data = await LabStaffRepository.getAppointments(date: dateStr);
       if (mounted) {
-        setState(() { 
+        setState(() {
           _bundleNames = bNames;
           _catalogNames = cNames;
-          _appointments = data; 
-          _loading = false; 
+          _appointments = data;
+          _loading = false;
         });
       }
     } catch (e) {
@@ -76,10 +80,14 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
         title: const Text('Xác nhận'),
         content: Text('Chạy xét nghiệm cho booking #$bookingId?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Hủy')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Xác nhận')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Xác nhận'),
+          ),
         ],
       ),
     );
@@ -87,18 +95,22 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
     final error = await LabStaffRepository.startInstrumentRun(bookingId);
     if (mounted) {
       final success = error == null;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Lỗi: $error'),
-        backgroundColor: success ? AppTheme.success : AppTheme.error,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? 'Đã bắt đầu xét nghiệm!' : 'Lỗi: $error'),
+          backgroundColor: success ? AppTheme.success : AppTheme.error,
+        ),
+      );
       if (success) {
         // Cập nhật State cục bộ thay vì load lại toàn bộ danh sách từ server
         setState(() {
-          final index = _appointments.indexWhere((a) => a['bookingId']?.toString() == bookingId);
+          final index = _appointments.indexWhere(
+            (a) => a['bookingId']?.toString() == bookingId,
+          );
           if (index != -1) {
             // Tạo một bản copy của item để đảm bảo tính mutable và thay đổi status
             final updatedItem = Map<String, dynamic>.from(_appointments[index]);
-            updatedItem['status'] = 'Completed'; 
+            updatedItem['status'] = 'Completed';
             _appointments[index] = updatedItem;
           }
         });
@@ -112,10 +124,15 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Lịch xét nghiệm'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_rounded),
-            onPressed: () => Navigator.of(context).pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _loadAppointments),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _loadAppointments,
+          ),
         ],
       ),
       body: Column(
@@ -133,16 +150,24 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_month_rounded, color: AppTheme.primary),
+                  const Icon(
+                    Icons.calendar_month_rounded,
+                    color: AppTheme.primary,
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     FormatUtils.formatDate(_selectedDate),
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                   const Spacer(),
-                  const Icon(Icons.arrow_drop_down_rounded, color: AppTheme.textSecondary),
+                  const Icon(
+                    Icons.arrow_drop_down_rounded,
+                    color: AppTheme.textSecondary,
+                  ),
                 ],
               ),
             ),
@@ -153,9 +178,13 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                Text('${_appointments.length} lịch hẹn',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                Text(
+                  '${_appointments.length} lịch hẹn',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -164,20 +193,22 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
           // ─── List ─────────────────────────────────────
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppTheme.primary),
+                  )
                 : _appointments.isEmpty
-                    ? _buildEmpty()
-                    : RefreshIndicator(
-                        color: AppTheme.primary,
-                        onRefresh: _loadAppointments,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _appointments.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
-                          itemBuilder: (_, i) =>
-                              _buildAppointmentCard(_appointments[i]),
-                        ),
-                      ),
+                ? _buildEmpty()
+                : RefreshIndicator(
+                    color: AppTheme.primary,
+                    onRefresh: _loadAppointments,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _appointments.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (_, i) =>
+                          _buildAppointmentCard(_appointments[i]),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -197,7 +228,10 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
     } else {
       final tCats = a['testCatalogs'];
       if (tCats is List && tCats.isNotEmpty) {
-        final names = tCats.map((id) => _catalogNames[id]).where((n) => n != null).toList();
+        final names = tCats
+            .map((id) => _catalogNames[id])
+            .where((n) => n != null)
+            .toList();
         if (names.isNotEmpty) testName = names.join(', ');
       }
     }
@@ -223,83 +257,134 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.person_rounded, color: AppTheme.primary, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(a['patientName']?.toString() ?? 'Bệnh nhân',
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    if (testName.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2, bottom: 1),
-                        child: Text(testName,
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.primary)),
-                      ),
-                    Text('Booking #$bookingCode',
-                        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _statusColor(status).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(status,
-                    style: TextStyle(
-                        color: _statusColor(status), fontSize: 11,
-                        fontWeight: FontWeight.w600)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Divider(height: 1),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textSecondary),
-              const SizedBox(width: 6),
-              Text(a['time']?.toString() ?? a['slotInfo']?['timeBlock']?.toString() ?? a['appointmentTime']?.toString() ?? '',
-                  style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
-              const Spacer(),
-              if (canStart && bookingId.isNotEmpty)
-                ElevatedButton.icon(
-                  onPressed: () => _startInstrumentRun(bookingId),
-                  icon: const Icon(Icons.play_arrow_rounded, size: 16),
-                  label: const Text('Chạy xét nghiệm', style: TextStyle(fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.secondary,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: AppTheme.primary,
+                    size: 24,
                   ),
                 ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        a['patientName']?.toString() ?? 'Bệnh nhân',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (testName.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2, bottom: 1),
+                          child: Text(
+                            testName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                        ),
+                      Text(
+                        'Booking #$bookingCode',
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _statusColor(status).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: _statusColor(status),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 14,
+                  color: AppTheme.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  a['time']?.toString() ??
+                      a['slotInfo']?['timeBlock']?.toString() ??
+                      a['appointmentTime']?.toString() ??
+                      '',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                if (canStart && bookingId.isNotEmpty)
+                  ElevatedButton.icon(
+                    onPressed: () => _startInstrumentRun(bookingId),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 16),
+                    label: const Text(
+                      'Chạy xét nghiệm',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.secondary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'Completed': return AppTheme.success;
-      case 'InProgress': return AppTheme.secondary;
-      case 'Confirmed': return AppTheme.primary;
-      case 'Cancelled': return AppTheme.error;
-      default: return AppTheme.warning;
+      case 'Completed':
+        return AppTheme.success;
+      case 'InProgress':
+        return AppTheme.secondary;
+      case 'Confirmed':
+        return AppTheme.primary;
+      case 'Cancelled':
+        return AppTheme.error;
+      default:
+        return AppTheme.warning;
     }
   }
 
@@ -308,10 +393,19 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.calendar_today_rounded, size: 56, color: AppTheme.textHint),
+          const Icon(
+            Icons.calendar_today_rounded,
+            size: 56,
+            color: AppTheme.textHint,
+          ),
           const SizedBox(height: 16),
-          const Text('Không có lịch hẹn ngày này',
-              style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
+          const Text(
+            'Không có lịch hẹn ngày này',
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 8),
           TextButton(onPressed: _pickDate, child: const Text('Chọn ngày khác')),
         ],
