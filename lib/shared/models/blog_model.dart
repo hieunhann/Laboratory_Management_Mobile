@@ -59,6 +59,17 @@ class BlogModel {
   String get displaySummary =>
       summary ?? (content != null ? _truncate(content!, 100) : '');
 
+  String? get fullImageUrl {
+    if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty) return thumbnailUrl;
+    if (imagePath == null || imagePath!.isEmpty) return null;
+    if (imagePath!.startsWith('http')) return imagePath;
+
+    // Backend GetById sometimes returns absolute OS paths (e.g. /app/Images/file.jpg)
+    // Extract just the file name and append to standard endpoint
+    final fileName = imagePath!.split('/').last.split('\\').last;
+    return 'https://hemalink-gateway-5ils.onrender.com/blog/Images/$fileName';
+  }
+
   String _truncate(String str, int maxLength) {
     if (str.length <= maxLength) return str;
     return '${str.substring(0, maxLength)}...';

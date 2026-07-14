@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../data/home_repository.dart';
 import '../../../features/auth/providers/auth_provider.dart';
@@ -9,6 +10,9 @@ import '../../../shared/models/bundle_model.dart';
 import '../../../shared/models/blog_model.dart';
 import '../../../config/app_theme.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../booking/data/discount_repository.dart';
+import '../../../shared/models/discount_model.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,8 +24,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<BundleModel> _bundles = [];
   List<BlogModel> _blogs = [];
+  List<DiscountModel> _vouchers = [];
   bool _loadingBundles = true;
   bool _loadingBlogs = true;
+  bool _loadingVouchers = true;
 
   final ScrollController _bundleScrollController = ScrollController();
   Timer? _bundleTimer;
@@ -58,14 +64,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     final bundlesFuture = HomeRepository.getBundles();
     final blogsFuture = HomeRepository.getApprovedBlogs();
+    final vouchersFuture = DiscountRepository.getDiscounts();
 
-    final results = await Future.wait([bundlesFuture, blogsFuture]);
+    final results = await Future.wait([bundlesFuture, blogsFuture, vouchersFuture]);
     if (mounted) {
       setState(() {
         _bundles = results[0] as List<BundleModel>;
         _blogs = results[1] as List<BlogModel>;
+        _vouchers = (results[2] as List<DiscountModel>).where((d) => d.isActive && d.expiryDate.isAfter(DateTime.now())).toList();
         _loadingBundles = false;
         _loadingBlogs = false;
+        _loadingVouchers = false;
       });
     }
   }
@@ -165,6 +174,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildBundlesSection(),
+                  const SizedBox(height: 24),
+
+                  // ─── Promotions (Mã Giảm Giá) ────────────
+                  _buildSectionHeader(
+                    title: 'Khuyến mãi & Ưu đãi',
+                    subtitle: 'Áp dụng mã giảm giá để tiết kiệm chi phí',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPromotionsSection(),
                   const SizedBox(height: 24),
 
                   // ─── Blog ─────────────────────────────────
@@ -583,10 +601,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppTheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
-              child: const Icon(
-                Icons.article_rounded,
-                color: AppTheme.primary,
-                size: 32,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                child: blog.fullImageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: blog.fullImageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Icon(Icons.image, color: Colors.grey),
+                        errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
+                      )
+                    : const Icon(
+                        Icons.article_rounded,
+                        color: AppTheme.primary,
+                        size: 32,
+                      ),
               ),
             ),
             const SizedBox(width: 12),
@@ -634,6 +662,140 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPromotionsSection() {
+    if (_loadingVouchers) {
+      return _buildShimmerList();
+    }
+
+    if (_vouchers.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Text(
+          'Không có chương trình khuyến mãi nào đang diễn ra.',
+          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 96,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _vouchers.length,
+        itemBuilder: (context, idx) {
+          final v = _vouchers[idx];
+          final isPercent = v.discountType == 'percentage';
+          final discountValueStr = isPercent 
+              ? '${v.value.toInt()}%' 
+              : '${(v.value / 1000).toInt()}K';
+
+          return Container(
+            width: 250,
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF7043), Color(0xFFFF8A65)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              boxShadow: AppTheme.cardShadow,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              discountValueStr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 24,
+                              ),
+                            ),
+                            const Text(
+                              'GIẢM',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 9,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const VerticalDivider(
+                          color: Colors.white24,
+                          width: 24,
+                          thickness: 1,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                v.code,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                v.description,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 10,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy_rounded, color: Colors.white, size: 18),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: v.code));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Đã sao chép mã giảm giá: ${v.code}'),
+                                backgroundColor: AppTheme.secondary,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

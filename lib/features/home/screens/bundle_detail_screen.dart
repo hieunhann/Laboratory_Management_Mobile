@@ -62,7 +62,9 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.primary),
+      );
     }
 
     if (_error != null) {
@@ -72,12 +74,19 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, size: 60, color: Colors.redAccent),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 60,
+                color: Colors.redAccent,
+              ),
               const SizedBox(height: 16),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 15),
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 15,
+                ),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
@@ -92,7 +101,9 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
     }
 
     if (_bundle == null) {
-      return const Center(child: Text('Không tìm thấy thông tin gói xét nghiệm.'));
+      return const Center(
+        child: Text('Không tìm thấy thông tin gói xét nghiệm.'),
+      );
     }
 
     return SingleChildScrollView(
@@ -142,7 +153,8 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
                     ),
                   ],
                 ),
-                if (_bundle!.description != null && _bundle!.description!.isNotEmpty) ...[
+                if (_bundle!.description != null &&
+                    _bundle!.description!.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   const Divider(height: 1),
                   const SizedBox(height: 16),
@@ -205,7 +217,10 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
               itemBuilder: (context, index) {
                 final catalog = _bundle!.catalogs![index];
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -216,7 +231,7 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.secondary.withOpacity(0.1),
+                          color: AppTheme.secondary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -238,7 +253,8 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
                                 color: AppTheme.textPrimary,
                               ),
                             ),
-                            if (catalog.description != null && catalog.description!.isNotEmpty) ...[
+                            if (catalog.description != null &&
+                                catalog.description!.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Text(
                                 catalog.description!,
@@ -270,7 +286,7 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -278,7 +294,8 @@ class _BundleDetailScreenState extends State<BundleDetailScreen> {
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: () => context.push('/booking?bundleId=${_bundle!.bundleId}'),
+          onPressed: () =>
+              context.push('/booking?bundleId=${_bundle!.bundleId}'),
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 48),
             backgroundColor: AppTheme.primary,

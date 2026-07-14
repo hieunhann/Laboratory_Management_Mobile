@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../config/app_theme.dart';
 import '../data/blog_repository.dart';
@@ -19,9 +21,9 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
   BlogModel? _blog;
   List<Map<String, dynamic>> _comments = [];
   Map<String, String> _userNames = {};
-  Map<int, String?> _userReactions = {};
-  Map<int, int> _commentLikes = {};
-  Map<int, int> _commentDislikes = {};
+  final Map<int, String?> _userReactions = {};
+  final Map<int, int> _commentLikes = {};
+  final Map<int, int> _commentDislikes = {};
   String? _resolvedAuthorName;
   bool _loading = true;
   final _commentCtrl = TextEditingController();
@@ -45,7 +47,7 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
       BlogRepository.getBlogById(widget.postId),
       BlogRepository.getComments(widget.postId),
     ]);
-    
+
     final blog = results[0] as BlogModel?;
     final comments = results[1] as List<Map<String, dynamic>>;
 
@@ -53,19 +55,28 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
     final uniqueUserIds = comments
         .map((c) => c['userId']?.toString() ?? c['UserId']?.toString())
         .where((id) => id != null && id.isNotEmpty)
+        .map((id) => id!)
         .toSet();
+        
+    if (blog != null && blog.authorId != null && blog.authorId!.isNotEmpty) {
+      uniqueUserIds.add(blog.authorId!);
+    }
 
     final namesMap = <String, String>{};
-    await Future.wait(uniqueUserIds.map((userId) async {
-      try {
-        final user = await AuthRepository.getUserById(userId!);
-        if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
-          namesMap[userId] = user.fullName!;
+    await Future.wait(
+      uniqueUserIds.map((userId) async {
+        try {
+          final user = await AuthRepository.getUserById(userId!);
+          if (user != null &&
+              user.fullName != null &&
+              user.fullName!.isNotEmpty) {
+            namesMap[userId] = user.fullName!;
+          }
+        } catch (_) {
+          // Bỏ qua lỗi kết nối đơn lẻ
         }
-      } catch (_) {
-        // Bỏ qua lỗi kết nối đơn lẻ
-      }
-    }));
+      }),
+    );
 
     // Khởi tạo số lượng likes/dislikes ngẫu nhiên giả lập cho mỗi comment
     for (var c in comments) {
@@ -81,7 +92,9 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
     if (blog != null && blog.authorId != null && blog.authorId!.isNotEmpty) {
       try {
         final user = await AuthRepository.getUserById(blog.authorId!);
-        if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
+        if (user != null &&
+            user.fullName != null &&
+            user.fullName!.isNotEmpty) {
           resolvedAuthor = user.fullName;
         }
       } catch (_) {
@@ -180,13 +193,24 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                     height: 200,
                     width: double.infinity,
                     color: AppTheme.surfaceVariant,
-                    child: const Center(
-                      child: Icon(
-                        Icons.article_rounded,
-                        size: 64,
-                        color: AppTheme.primary,
-                      ),
-                    ),
+                    child: _blog!.fullImageUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: _blog!.fullImageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Center(
+                              child: Icon(Icons.image, size: 64, color: Colors.grey),
+                            ),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.article_rounded,
+                              size: 64,
+                              color: AppTheme.primary,
+                            ),
+                          ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -228,24 +252,34 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         // Meta
                         Row(
                           children: [
-                            if (_resolvedAuthorName != null &&
-                                _resolvedAuthorName!.isNotEmpty &&
-                                _resolvedAuthorName != 'Tác giả') ...[
-                              const Icon(
-                                Icons.person_outline_rounded,
-                                size: 14,
-                                color: AppTheme.textHint,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _resolvedAuthorName!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppTheme.textHint,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                            ],
+                            Builder(
+                              builder: (context) {
+                                final authorDisplay = _resolvedAuthorName ?? _blog!.authorName;
+                                if (authorDisplay != null &&
+                                    authorDisplay.isNotEmpty &&
+                                    authorDisplay != 'Tác giả') {
+                                  return Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.person_outline_rounded,
+                                        size: 14,
+                                        color: AppTheme.textHint,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        authorDisplay,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textHint,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                    ],
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
                             const Icon(
                               Icons.calendar_today_rounded,
                               size: 14,
@@ -350,6 +384,13 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
     final likesCount = _commentLikes[commentId] ?? 0;
     final dislikesCount = _commentDislikes[commentId] ?? 0;
 
+    // Check role
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final role = authProvider.role;
+    final isStaffRole = role == 'Admin' || role == 'Manager' || role == 'LabUser' || 
+                        role == 'Receptionist' || role == 'LabBlogger' || 
+                        role == 'Technician' || role == 'Staff';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -416,17 +457,25 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              hasLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                              hasLiked
+                                  ? Icons.thumb_up_rounded
+                                  : Icons.thumb_up_outlined,
                               size: 14,
-                              color: hasLiked ? AppTheme.primary : AppTheme.textHint,
+                              color: hasLiked
+                                  ? AppTheme.primary
+                                  : AppTheme.textHint,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               likesCount.toString(),
                               style: TextStyle(
                                 fontSize: 11,
-                                color: hasLiked ? AppTheme.primary : AppTheme.textHint,
-                                fontWeight: hasLiked ? FontWeight.bold : FontWeight.normal,
+                                color: hasLiked
+                                    ? AppTheme.primary
+                                    : AppTheme.textHint,
+                                fontWeight: hasLiked
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                             ),
                           ],
@@ -438,17 +487,25 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              hasDisliked ? Icons.thumb_down_rounded : Icons.thumb_down_outlined,
+                              hasDisliked
+                                  ? Icons.thumb_down_rounded
+                                  : Icons.thumb_down_outlined,
                               size: 14,
-                              color: hasDisliked ? Colors.red : AppTheme.textHint,
+                              color: hasDisliked
+                                  ? Colors.red
+                                  : AppTheme.textHint,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               dislikesCount.toString(),
                               style: TextStyle(
                                 fontSize: 11,
-                                color: hasDisliked ? Colors.red : AppTheme.textHint,
-                                fontWeight: hasDisliked ? FontWeight.bold : FontWeight.normal,
+                                color: hasDisliked
+                                    ? Colors.red
+                                    : AppTheme.textHint,
+                                fontWeight: hasDisliked
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                             ),
                           ],
@@ -460,6 +517,38 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
               ],
             ),
           ),
+          if (isStaffRole)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: AppTheme.error, size: 20),
+              constraints: const BoxConstraints(),
+              padding: EdgeInsets.zero,
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Xóa bình luận'),
+                    content: const Text('Bạn có chắc muốn xóa bình luận này?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Huỷ')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true), 
+                        style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+                        child: const Text('Xóa'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  final commentId = c['commentId'] ?? c['id'];
+                  if (commentId != null) {
+                    final success = await BlogRepository.deleteComment(commentId);
+                    if (success) {
+                      _loadBlog();
+                    }
+                  }
+                }
+              },
+            ),
         ],
       ),
     );

@@ -36,7 +36,9 @@ class SecureStorageService {
 
   // ─── Clear All ───────────────────────────────────────────
   static Future<void> clearAll() async {
-    await _storage.deleteAll();
+    await _storage.delete(key: AppConfig.accessTokenKey);
+    await _storage.delete(key: AppConfig.refreshTokenKey);
+    await _storage.delete(key: AppConfig.userDataKey);
   }
 
   static Future<bool> isLoggedIn() async {

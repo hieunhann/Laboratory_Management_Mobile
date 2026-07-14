@@ -7,6 +7,8 @@ import '../../../shared/models/bundle_model.dart';
 import '../../../shared/models/patient_model.dart';
 import '../data/booking_repository.dart';
 import 'vnpay_webview_screen.dart';
+import '../data/discount_repository.dart';
+import '../../../shared/models/discount_model.dart';
 
 class BookingScreen extends StatefulWidget {
   final int? initialBundleId;
@@ -1285,6 +1287,308 @@ class _ConfirmStep extends StatefulWidget {
 
 class _ConfirmStepState extends State<_ConfirmStep> {
   bool _loading = false;
+  DiscountModel? _appliedDiscount;
+  double _discountAmount = 0;
+  List<DiscountModel> _availableVouchers = [];
+  bool _loadingVouchers = true;
+  final TextEditingController _customCodeController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVouchers();
+  }
+
+  @override
+  void dispose() {
+    _customCodeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadVouchers() async {
+    try {
+      final list = await DiscountRepository.getDiscounts();
+      if (mounted) {
+        setState(() {
+          _availableVouchers = list.where((d) => d.isActive && d.expiryDate.isAfter(DateTime.now())).toList();
+          _loadingVouchers = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingVouchers = false);
+    }
+  }
+
+  void _applyVoucher(DiscountModel d) {
+    final originalTotal = (widget.items?['total'] as num?)?.toDouble() ?? 0.0;
+    if (originalTotal < d.minOrderAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Voucher này chỉ áp dụng cho đơn hàng từ ${_formatPrice(d.minOrderAmount)}đ'),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+      return;
+    }
+
+    double amt = 0;
+    if (d.discountType == 'percentage') {
+      amt = originalTotal * (d.value / 100);
+      if (d.maxDiscountAmount != null && amt > d.maxDiscountAmount!) {
+        amt = d.maxDiscountAmount!;
+      }
+    } else {
+      amt = d.value;
+    }
+
+    setState(() {
+      _appliedDiscount = d;
+      _discountAmount = amt;
+    });
+
+    widget.items?['appliedDiscountCode'] = d.code;
+    widget.items?['appliedDiscountAmount'] = amt;
+    widget.items?['total'] = originalTotal - amt;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Đã áp dụng mã ${d.code} thành công!'),
+        backgroundColor: AppTheme.secondary,
+      ),
+    );
+  }
+
+  void _removeVoucher() {
+    if (_appliedDiscount == null) return;
+    final total = (widget.items?['total'] as num?)?.toDouble() ?? 0.0;
+    final revertedTotal = total + _discountAmount;
+
+    setState(() {
+      _appliedDiscount = null;
+      _discountAmount = 0;
+    });
+
+    widget.items?.remove('appliedDiscountCode');
+    widget.items?.remove('appliedDiscountAmount');
+    widget.items?['total'] = revertedTotal;
+  }
+
+  Future<void> _openVoucherSelector() async {
+    final total = (widget.items?['total'] as num?)?.toDouble() ?? 0.0;
+    final double originalTotal = total + _discountAmount;
+
+    setState(() {
+      _loadingVouchers = true;
+    });
+    await _loadVouchers();
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(
+                    child: Text(
+                      'Chọn hoặc nhập mã giảm giá',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Mã tự nhập
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _customCodeController,
+                          textCapitalization: TextCapitalization.characters,
+                          decoration: const InputDecoration(
+                            hintText: 'Nhập mã giảm giá của bạn...',
+                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final code = _customCodeController.text.trim().toUpperCase();
+                          if (code.isEmpty) return;
+
+                          final error = await DiscountRepository.validateDiscountCode(code, originalTotal);
+                          if (error != null) {
+                            _showErrorSnackBar(error);
+                            return;
+                          }
+
+                          // Tìm voucher để áp dụng
+                          final list = await DiscountRepository.getDiscounts();
+                          final d = list.firstWhere((item) => item.code.toUpperCase() == code);
+                          
+                          _removeVoucher(); // Gỡ voucher cũ nếu có
+                          _applyVoucher(d);
+                          _customCodeController.clear();
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        child: const Text('Áp dụng'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Voucher có sẵn dành cho bạn',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Expanded(
+                    child: _loadingVouchers
+                        ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                        : _availableVouchers.isEmpty
+                            ? const Center(
+                                child: Text('Không có voucher khuyến mãi nào khả dụng.', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                              )
+                            : ListView.builder(
+                                itemCount: _availableVouchers.length,
+                                itemBuilder: (context, idx) {
+                                  final d = _availableVouchers[idx];
+                                  final isEligible = originalTotal >= d.minOrderAmount;
+                                  final isCurrentlyApplied = _appliedDiscount?.code == d.code;
+
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: isCurrentlyApplied
+                                          ? AppTheme.primary.withValues(alpha: 0.05)
+                                          : Colors.white,
+                                      border: Border.all(
+                                        color: isCurrentlyApplied
+                                            ? AppTheme.primary
+                                            : Colors.grey[200]!,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.discount_rounded,
+                                          color: isEligible ? AppTheme.primary : Colors.grey,
+                                          size: 24,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    d.code,
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      color: isEligible ? AppTheme.textPrimary : Colors.grey,
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                                  if (isCurrentlyApplied) ...[
+                                                    const SizedBox(width: 8),
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        color: AppTheme.secondary.withValues(alpha: 0.1),
+                                                        borderRadius: BorderRadius.circular(4),
+                                                      ),
+                                                      child: const Text(
+                                                        'Đã chọn',
+                                                        style: TextStyle(
+                                                          color: AppTheme.secondary,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 8,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                d.description,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: isEligible ? AppTheme.textSecondary : Colors.grey[400],
+                                                ),
+                                              ),
+                                              if (!isEligible) ...[
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'Chưa đủ điều kiện (đơn tối thiểu ${_formatPrice(d.minOrderAmount)}đ)',
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: Colors.red,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        if (isEligible)
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              _removeVoucher(); // Gỡ voucher cũ nếu có
+                                              _applyVoucher(d);
+                                              if (ctx.mounted) Navigator.pop(ctx);
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              minimumSize: Size.zero,
+                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            ),
+                                            child: const Text('Chọn', style: TextStyle(fontSize: 11)),
+                                          ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppTheme.error),
+    );
+  }
 
   Future<void> _handleConfirm() async {
     final patient = widget.patient;
@@ -1318,12 +1622,10 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       final createdBy = await AuthUtils.getUserId() ?? '';
 
       final source = items['source'];
-      // bundleId phải là int hoặc null
       final bundleId = source == 'package'
           ? int.tryParse(items['package']['bundleId']?.toString() ?? '0') ?? 0
           : null;
 
-      // catalogs phải là List<int>
       List<int> catalogs = [];
       if (source == 'catalog') {
         catalogs = (items['items'] as List)
@@ -1335,7 +1637,6 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       final rawDate = dateTime['date'] as String;
       final dateStr = rawDate.split('T')[0];
 
-      // Backend nhận TimeOnly dạng HH:mm:ss (vd "08:00:00"); chuẩn hoá mọi input ("8:00", "08:00") về dạng này
       final rawTime = dateTime['time'] as String;
       final timeBlock = rawTime.length == 5 ? '$rawTime:00' : rawTime;
 
@@ -1352,7 +1653,6 @@ class _ConfirmStepState extends State<_ConfirmStep> {
 
       final response = await BookingRepository.createBooking(payload);
 
-      // BE trả về instancesCode (UUID) thay vì bookingId
       final newBookingId =
           response['instancesCode']?.toString() ??
           response['bookingId']?.toString() ??
@@ -1394,6 +1694,9 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       total = items['total'] ?? 0;
     }
 
+    final double discountAmt = _discountAmount;
+    final double originalTotal = total.toDouble() + discountAmt;
+
     final appointmentDate = dateTime != null
         ? (dateTime['date'] as String).split('T')[0]
         : '';
@@ -1430,6 +1733,72 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                     _infoRow('Ngày khám', appointmentDate),
                     _infoRow('Giờ khám', timeBlock),
                     const Divider(height: 24),
+                    
+                    // --- Voucher/Discount Section ---
+                    Row(
+                      children: [
+                        const Icon(Icons.discount_rounded, color: AppTheme.primary, size: 18),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Mã giảm giá',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                        ),
+                        const Spacer(),
+                        if (_appliedDiscount != null) ...[
+                          GestureDetector(
+                            onTap: _removeVoucher,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    _appliedDiscount!.code,
+                                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 11),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.close, color: Colors.red, size: 10),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          TextButton(
+                            onPressed: _openVoucherSelector,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Row(
+                              children: [
+                                Text(
+                                  'Chọn hoặc nhập mã',
+                                  style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                                Icon(Icons.chevron_right_rounded, color: AppTheme.primary, size: 16),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const Divider(height: 24),
+
+                    // Price Breakdown
+                    _infoRow(
+                      'Tạm tính',
+                      '${_formatPrice(originalTotal)} đ',
+                    ),
+                    if (_appliedDiscount != null)
+                      _infoRow(
+                        'Khuyến mãi',
+                        '-${_formatPrice(discountAmt)} đ',
+                        customColor: AppTheme.secondary,
+                      ),
                     _infoRow(
                       'Tổng tiền',
                       '${_formatPrice(total)} đ',
@@ -1472,7 +1841,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
     );
   }
 
-  Widget _infoRow(String label, String value, {bool isTotal = false}) {
+  Widget _infoRow(String label, String value, {bool isTotal = false, Color? customColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -1490,7 +1859,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
               textAlign: TextAlign.end,
               style: TextStyle(
                 fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
-                color: isTotal ? AppTheme.primary : AppTheme.textPrimary,
+                color: customColor ?? (isTotal ? AppTheme.primary : AppTheme.textPrimary),
                 fontSize: isTotal ? 16 : 13,
               ),
             ),
