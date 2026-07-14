@@ -47,8 +47,15 @@ class ApiClient {
     dio.interceptors.add(
       LogInterceptor(
         requestBody: true,
-        responseBody: true,
-        logPrint: (obj) => print(obj),
+        responseBody: false, // Tắt in response body để tránh crash DWDS daemon trên Chrome/Web khi in danh sách byte/token quá lớn
+        logPrint: (obj) {
+          final str = obj.toString();
+          if (str.length > 500) {
+            print('${str.substring(0, 500)}... [truncated]');
+          } else {
+            print(str);
+          }
+        },
       ),
     );
 
