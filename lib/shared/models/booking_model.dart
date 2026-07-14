@@ -1,3 +1,5 @@
+import '../../core/utils/format_utils.dart';
+
 class BookingModel {
   final String? bookingCode;
   final dynamic bookingId;
@@ -53,9 +55,7 @@ class BookingModel {
       totalAmount: json['totalAmount'] as num? ?? json['amount'] as num?,
       paymentStatus: json['paymentStatus']?.toString(),
       items: json['items'] as List<dynamic>?,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'].toString())
-          : null,
+      createdAt: FormatUtils.parseUtcToLocal(json['createdAt']?.toString() ?? json['CreatedDate']?.toString()),
       bundleId: json['bundleId'] as int?,
       testCatalogs: json['testCatalogs'] as List<dynamic>?,
     );

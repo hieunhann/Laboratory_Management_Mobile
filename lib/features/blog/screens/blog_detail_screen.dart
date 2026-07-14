@@ -336,7 +336,7 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
     final displayName = _userNames[userId] ?? (userId.isNotEmpty ? userId : 'Người dùng');
     
     final createdDateStr = c['createdDate']?.toString() ?? c['CreatedDate']?.toString();
-    final parsedDate = createdDateStr != null ? DateTime.tryParse(createdDateStr) : null;
+    final parsedDate = FormatUtils.parseUtcToLocal(createdDateStr);
     final dateText = FormatUtils.formatDateTime(parsedDate);
 
     final commentId = c['commentId'] as int? ?? c['CommentId'] as int? ?? 0;
