@@ -20,6 +20,9 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   String? _selectedBookingId;
   BookingModel? _bookingDetail;
   List<dynamic> _testResults = [];
+  List<dynamic> _aiReviews = [];
+  Map<int, String> _bundleNames = {};
+  Map<int, String> _catalogNames = {};
   List<BookingModel> _records = [];
   bool _loading = true;
   bool _downloading = false;
@@ -35,22 +38,40 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   Future<void> _loadData() async {
     setState(() => _loading = true);
     try {
+      // Tải cache tên gói cho cả List và Detail
+      final bundles = await BookingRepository.getAllBundles();
+      final catalogs = await BookingRepository.getAllCatalogs();
+      final Map<int, String> bNames = {};
+      final Map<int, String> cNames = {};
+      for (var b in bundles) {
+        if (b.bundleId != null && b.bundleName != null) bNames[b.bundleId!] = b.bundleName!;
+      }
+      for (var c in catalogs) {
+        if (c.catalogId != null && c.catalogName != null) cNames[c.catalogId!] = c.catalogName!;
+      }
+
       if (_selectedBookingId != null) {
         final detail = await BookingRepository.getBookingById(_selectedBookingId!);
         
         // Fetch random test results (if available)
         List<dynamic> testCatalogs = [];
+        List<dynamic> aiReviews = [];
         if (detail != null && (detail.isCompleted || detail.isConfirmed)) {
           final testResultMap = await BookingRepository.getTestResultByBookingId(_selectedBookingId!);
           if (testResultMap != null && testResultMap['catalogs'] != null) {
             testCatalogs = testResultMap['catalogs'] as List<dynamic>;
           }
+          // Tự động gọi phân tích AI khi load chi tiết
+          aiReviews = await BookingRepository.getAiReview(_selectedBookingId!);
         }
 
         if (mounted) {
           setState(() {
+            _bundleNames = bNames;
+            _catalogNames = cNames;
             _bookingDetail = detail;
             _testResults = testCatalogs;
+            _aiReviews = aiReviews;
             _loading = false;
           });
         }
@@ -58,6 +79,8 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
         final list = await PatientRepository.getMedicalRecords();
         if (mounted) {
           setState(() {
+            _bundleNames = bNames;
+            _catalogNames = cNames;
             _records = list;
             _loading = false;
           });
@@ -166,13 +189,23 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
     final date = b.appointmentDate ?? '';
     final time = FormatUtils.formatTime(b.appointmentTime);
 
+    String testName = '';
+    if (b.bundleId != null && _bundleNames.containsKey(b.bundleId)) {
+      testName = _bundleNames[b.bundleId]!;
+    } else if (b.testCatalogs != null && b.testCatalogs!.isNotEmpty) {
+      final names = b.testCatalogs!.map((id) => _catalogNames[id]).where((n) => n != null).toList();
+      if (names.isNotEmpty) {
+        testName = names.join(', ');
+      }
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // ─── Header Card ─────────────────────────────────
+          // ─── Header Info ─────────────────────────────────
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -182,9 +215,22 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
               children: [
                 const Icon(Icons.check_circle_rounded, size: 48, color: AppTheme.success),
                 const SizedBox(height: 12),
+                if (testName.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      testName,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                    ),
+                  ),
                 Text(
                   'Đơn xét nghiệm #${b.bookingCode ?? b.bookingId}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  style: TextStyle(
+                    fontSize: testName.isNotEmpty ? 14 : 16, 
+                    fontWeight: testName.isNotEmpty ? FontWeight.w500 : FontWeight.w700, 
+                    color: testName.isNotEmpty ? AppTheme.textSecondary : AppTheme.textPrimary
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -225,8 +271,23 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                     final price = it['price'] != null ? FormatUtils.formatCurrency(it['price'] as num) : '';
                     
                     // Lấy ra danh sách indicators/results
-                    final indicators = it['parameters'] ?? it['indicators'] ?? it['results'] ?? it['testResults'] ?? it['metrics'] ?? [];
-                    final hasIndicators = indicators is List && indicators.isNotEmpty;
+                    final rawIndicators = it['parameters'] ?? it['indicators'] ?? it['results'] ?? it['testResults'] ?? it['metrics'] ?? [];
+                    final hasIndicators = rawIndicators is List && rawIndicators.isNotEmpty;
+                    
+                    // Lọc trùng lặp chỉ số (nếu có)
+                    final indicators = [];
+                    final seenNames = <String>{};
+                    if (hasIndicators) {
+                      for (var ind in rawIndicators) {
+                        if (ind is Map) {
+                          final indName = ind['name'] ?? ind['indicatorName'] ?? ind['parameterName'] ?? ind['testName'] ?? 'Chỉ số';
+                          if (!seenNames.contains(indName)) {
+                            seenNames.add(indName);
+                            indicators.add(ind);
+                          }
+                        }
+                      }
+                    }
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -240,7 +301,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                               Expanded(
                                 child: Text(
                                   name,
-                                  style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
+                                  style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary, fontWeight: FontWeight.w700),
                                 ),
                               ),
                               if (price.isNotEmpty)
@@ -250,9 +311,9 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                                 ),
                             ],
                           ),
-                          if (hasIndicators)
+                          if (indicators.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(left: 26, top: 6),
+                              padding: const EdgeInsets.only(left: 26, top: 12),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: indicators.map<Widget>((ind) {
@@ -262,16 +323,80 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                                     final indUnit = ind['unit'] ?? ind['measureUnit'] ?? '';
                                     final normalRange = ind['normalRange'] ?? ind['referenceRange'] ?? '';
                                     
-                                    String displayText = '•  $indName: $indValue $indUnit';
-                                    if (normalRange.toString().isNotEmpty) {
-                                      displayText += ' (BT: $normalRange)';
-                                    }
+                                    final aiItem = _aiReviews.cast<Map>().firstWhere(
+                                      (ai) => ai['parameter'] == indName, 
+                                      orElse: () => {}
+                                    );
                                     
+                                    final statusStr = aiItem['status']?.toString();
+                                    final isNormal = statusStr == 'Normal' || (statusStr == null && ind['isNormal'] == true);
+                                    final isAbnormal = statusStr == 'High' || statusStr == 'Low' || statusStr == 'Abnormal' || (statusStr == null && ind['isNormal'] == false);
+                                    
+                                    Color valColor = AppTheme.textPrimary;
+                                    if (isNormal) valColor = Colors.green.shade600;
+                                    if (isAbnormal) valColor = Colors.red.shade600;
+
+                                    final comment = aiItem['comment']?.toString() ?? '';
+
                                     return Padding(
-                                      padding: const EdgeInsets.only(bottom: 4),
-                                      child: Text(
-                                        displayText,
-                                        style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                flex: 5,
+                                                child: Text(
+                                                  '• $indName:',
+                                                  style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 5,
+                                                child: RichText(
+                                                  text: TextSpan(
+                                                    text: '$indValue $indUnit',
+                                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: valColor),
+                                                    children: [
+                                                      if (normalRange.toString().isNotEmpty)
+                                                        TextSpan(
+                                                          text: '\n(BT: $normalRange)',
+                                                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.grey),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (comment.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 6, left: 12),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue.withOpacity(0.05),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  border: Border.all(color: Colors.blue.withOpacity(0.15))
+                                                ),
+                                                child: Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    const Icon(Icons.auto_awesome, size: 14, color: Colors.blue),
+                                                    const SizedBox(width: 6),
+                                                    Expanded(
+                                                      child: Text(
+                                                        comment,
+                                                        style: TextStyle(fontSize: 12, color: Colors.blue.shade800, fontStyle: FontStyle.italic, height: 1.3),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     );
                                   }
@@ -288,25 +413,6 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
             ),
             const SizedBox(height: 24),
           ],
-
-          // ─── Actions ─────────────────────────────────────
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _downloading ? null : () => _handleDownload(b.bookingId.toString()),
-              icon: _downloading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.file_download_outlined),
-              label: Text(_downloading ? 'Đang tải PDF...' : 'Tải kết quả PDF'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -359,6 +465,16 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   }
 
   Widget _buildRecordCard(BookingModel r) {
+    String testName = '';
+    if (r.bundleId != null && _bundleNames.containsKey(r.bundleId)) {
+      testName = _bundleNames[r.bundleId]!;
+    } else if (r.testCatalogs != null && r.testCatalogs!.isNotEmpty) {
+      final names = r.testCatalogs!.map((id) => _catalogNames[id]).where((n) => n != null).toList();
+      if (names.isNotEmpty) {
+        testName = names.join(', ');
+      }
+    }
+
     final date = r.appointmentDate ?? '';
     final time = FormatUtils.formatTime(r.appointmentTime);
     return Container(
@@ -387,9 +503,21 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (testName.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          testName,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.primary),
+                        ),
+                      ),
                     Text(
-                      'Bệnh án #${r.bookingId}',
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary),
+                      'Bệnh án #${r.bookingCode ?? r.bookingId}',
+                      style: TextStyle(
+                        fontWeight: testName.isNotEmpty ? FontWeight.w500 : FontWeight.w700, 
+                        fontSize: testName.isNotEmpty ? 12 : 14, 
+                        color: testName.isNotEmpty ? AppTheme.textSecondary : AppTheme.textPrimary
+                      ),
                     ),
                     Text(
                       r.patientName ?? 'Bệnh nhân',
@@ -398,10 +526,6 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.file_download_outlined, color: AppTheme.primary),
-                onPressed: () => _handleDownload(r.bookingId.toString()),
-              )
             ],
           ),
           const Divider(height: 24),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/app_theme.dart';
 import '../../../core/network/api_client.dart';
+import '../../booking/data/booking_repository.dart';
 import '../../../shared/models/booking_model.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../../core/utils/format_utils.dart';
@@ -14,6 +15,8 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   List<BookingModel> _bookings = [];
+  Map<int, String> _bundleNames = {};
+  Map<int, String> _catalogNames = {};
   bool _loading = true;
   String? _error;
 
@@ -74,7 +77,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
       
       debugPrint('--- DEBUG: Parsed items length = ${items.length} ---');
 
+      // Tải cache tên gói
+      final bundles = await BookingRepository.getAllBundles();
+      final catalogs = await BookingRepository.getAllCatalogs();
+      final Map<int, String> bNames = {};
+      final Map<int, String> cNames = {};
+      
+      for (var b in bundles) {
+        if (b.bundleId != null && b.bundleName != null) bNames[b.bundleId!] = b.bundleName!;
+      }
+      for (var c in catalogs) {
+        if (c.catalogId != null && c.catalogName != null) cNames[c.catalogId!] = c.catalogName!;
+      }
+
       setState(() {
+        _bundleNames = bNames;
+        _catalogNames = cNames;
         _bookings = items
             .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
             .toList();
@@ -112,6 +130,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildBookingCard(BookingModel b) {
+    String testName = '';
+    if (b.bundleId != null && _bundleNames.containsKey(b.bundleId)) {
+      testName = _bundleNames[b.bundleId]!;
+    } else if (b.testCatalogs != null && b.testCatalogs!.isNotEmpty) {
+      final names = b.testCatalogs!.map((id) => _catalogNames[id]).where((n) => n != null).toList();
+      if (names.isNotEmpty) {
+        testName = names.join(', ');
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -138,11 +166,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (testName.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          testName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 16,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
                     Text(
                       'Đơn #${b.bookingCode ?? b.bookingId}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 15,
-                        color: AppTheme.textPrimary,
+                      style: TextStyle(
+                        fontWeight: testName.isNotEmpty ? FontWeight.w500 : FontWeight.w600, 
+                        fontSize: testName.isNotEmpty ? 13 : 15,
+                        color: testName.isNotEmpty ? AppTheme.textSecondary : AppTheme.textPrimary,
                       ),
                     ),
                     if (b.patientName != null)
