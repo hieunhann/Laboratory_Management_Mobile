@@ -96,12 +96,6 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
                           context.push('/lab-staff/appointment-schedule'),
                     ),
                     _buildMenuCard(
-                      icon: Icons.article_rounded,
-                      label: 'Quản lý Blog',
-                      color: AppTheme.success,
-                      onTap: () => context.push('/lab-staff/blogs'),
-                    ),
-                    _buildMenuCard(
                       icon: Icons.logout_rounded,
                       label: 'Đăng xuất',
                       color: AppTheme.error,

@@ -15,10 +15,9 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
 
   void _checkUrl(String url) {
     final uri = Uri.parse(url);
-    if (url.contains('successBooking') || 
-        url.contains('failBooking') || 
+    if (url.contains('successBooking') ||
+        url.contains('failBooking') ||
         url.contains('hema-link.io.vn')) {
-      
       final responseCode = uri.queryParameters['vnp_ResponseCode'];
       if (responseCode == '00' || url.contains('successBooking')) {
         Navigator.pop(context, true);
@@ -48,7 +47,9 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
             ),
             onReceivedServerTrustAuthRequest: (controller, challenge) async {
               // BỎ QUA MỌI LỖI SSL! Chấp nhận mọi chứng chỉ.
-              return ServerTrustAuthResponse(action: ServerTrustAuthResponseAction.PROCEED);
+              return ServerTrustAuthResponse(
+                action: ServerTrustAuthResponseAction.PROCEED,
+              );
             },
             onLoadStart: (controller, url) {
               setState(() {
@@ -65,9 +66,7 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
           ),
           if (_isLoading)
             const Center(
-              child: CircularProgressIndicator(
-                color: AppTheme.primary,
-              ),
+              child: CircularProgressIndicator(color: AppTheme.primary),
             ),
         ],
       ),
