@@ -19,8 +19,11 @@ import '../features/blog/screens/blog_detail_screen.dart';
 import '../features/lab_staff/screens/lab_staff_landing.dart';
 import '../features/lab_staff/screens/lab_staff_dashboard.dart';
 import '../features/lab_staff/screens/appointment_schedule_screen.dart';
+import '../features/blog/screens/staff_blog_management_screen.dart';
+import '../features/blog/screens/staff_blog_editor_screen.dart';
 import '../shared/widgets/main_scaffold.dart';
 import '../shared/models/patient_model.dart';
+import '../shared/models/blog_model.dart';
 
 class AppRouter {
   static GoRouter router(AuthProvider authProvider) {
@@ -208,6 +211,17 @@ class AppRouter {
           path: '/lab-staff/appointment-schedule',
           pageBuilder: (c, s) =>
               _slide(c, s, const AppointmentScheduleScreen()),
+        ),
+        GoRoute(
+          path: '/lab-staff/blogs',
+          pageBuilder: (c, s) => _slide(c, s, const StaffBlogManagementScreen()),
+        ),
+        GoRoute(
+          path: '/lab-staff/blogs/edit',
+          pageBuilder: (c, s) {
+            final blog = s.extra as BlogModel?;
+            return _slide(c, s, StaffBlogEditorScreen(existingBlog: blog));
+          },
         ),
       ],
     );
