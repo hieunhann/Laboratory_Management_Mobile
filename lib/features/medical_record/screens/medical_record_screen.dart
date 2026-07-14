@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/app_theme.dart';
+import '../../../config/app_config.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../shared/models/booking_model.dart';
 import '../../booking/data/booking_repository.dart';
 import '../../profile/data/patient_repository.dart';
@@ -17,6 +19,7 @@ class MedicalRecordScreen extends StatefulWidget {
 class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   String? _selectedBookingId;
   BookingModel? _bookingDetail;
+  List<dynamic> _testResults = [];
   List<BookingModel> _records = [];
   bool _loading = true;
   bool _downloading = false;
@@ -34,9 +37,20 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
     try {
       if (_selectedBookingId != null) {
         final detail = await BookingRepository.getBookingById(_selectedBookingId!);
+        
+        // Fetch random test results (if available)
+        List<dynamic> testCatalogs = [];
+        if (detail != null && (detail.isCompleted || detail.isConfirmed)) {
+          final testResultMap = await BookingRepository.getTestResultByBookingId(_selectedBookingId!);
+          if (testResultMap != null && testResultMap['catalogs'] != null) {
+            testCatalogs = testResultMap['catalogs'] as List<dynamic>;
+          }
+        }
+
         if (mounted) {
           setState(() {
             _bookingDetail = detail;
+            _testResults = testCatalogs;
             _loading = false;
           });
         }
@@ -57,19 +71,21 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   Future<void> _handleDownload(String bookingId) async {
     setState(() => _downloading = true);
     try {
-      final bytes = await PatientRepository.downloadReport(bookingId);
-      if (bytes != null && bytes.isNotEmpty) {
+      // Vì API download trả về File binary, ta dùng url_launcher để mở trình duyệt tải file về máy
+      final url = Uri.parse('${AppConfig.baseUrl}testorder/api/TestReport/DownloadReport/$bookingId');
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Đã tải xuống thành công file báo cáo PDF cho Đơn #$bookingId!'),
+            const SnackBar(
+              content: Text('Đang tiến hành mở và tải file PDF...'),
               backgroundColor: AppTheme.success,
               behavior: SnackBarBehavior.floating,
             ),
           );
         }
       } else {
-        throw 'Không tải được file PDF báo cáo.';
+        throw 'Không thể mở trình duyệt để tải file.';
       }
     } catch (e) {
       if (mounted) {
@@ -188,7 +204,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
           const SizedBox(height: 16),
 
           // ─── Test items Card ──────────────────────────────
-          if (b.items != null && b.items!.isNotEmpty) ...[
+          if (_testResults.isNotEmpty || (b.items != null && b.items!.isNotEmpty)) ...[
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -204,25 +220,64 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                     style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary),
                   ),
                   const SizedBox(height: 12),
-                  ...b.items!.map((it) {
-                    final name = it['testName']?.toString() ?? it['displayName']?.toString() ?? 'Chỉ số xét nghiệm';
+                  ...(_testResults.isNotEmpty ? _testResults : b.items!).map((it) {
+                    final name = it['catalogName']?.toString() ?? it['testName']?.toString() ?? it['displayName']?.toString() ?? 'Chỉ số xét nghiệm';
                     final price = it['price'] != null ? FormatUtils.formatCurrency(it['price'] as num) : '';
+                    
+                    // Lấy ra danh sách indicators/results
+                    final indicators = it['parameters'] ?? it['indicators'] ?? it['results'] ?? it['testResults'] ?? it['metrics'] ?? [];
+                    final hasIndicators = indicators is List && indicators.isNotEmpty;
+
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.biotech_rounded, size: 18, color: AppTheme.primary),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
-                            ),
+                          Row(
+                            children: [
+                              const Icon(Icons.biotech_rounded, size: 18, color: AppTheme.primary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              if (price.isNotEmpty)
+                                Text(
+                                  price,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                                ),
+                            ],
                           ),
-                          if (price.isNotEmpty)
-                            Text(
-                              price,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                          if (hasIndicators)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 26, top: 6),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: indicators.map<Widget>((ind) {
+                                  if (ind is Map) {
+                                    final indName = ind['name'] ?? ind['indicatorName'] ?? ind['parameterName'] ?? ind['testName'] ?? 'Chỉ số';
+                                    final indValue = ind['value'] ?? ind['resultValue'] ?? ind['result'] ?? ind['measureValue'] ?? 'N/A';
+                                    final indUnit = ind['unit'] ?? ind['measureUnit'] ?? '';
+                                    final normalRange = ind['normalRange'] ?? ind['referenceRange'] ?? '';
+                                    
+                                    String displayText = '•  $indName: $indValue $indUnit';
+                                    if (normalRange.toString().isNotEmpty) {
+                                      displayText += ' (BT: $normalRange)';
+                                    }
+                                    
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: Text(
+                                        displayText,
+                                        style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox();
+                                }).toList(),
+                              ),
                             ),
                         ],
                       ),

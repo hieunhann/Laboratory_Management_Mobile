@@ -50,6 +50,7 @@ class BookingModel {
   }
 
   bool get isPending => status == 'Pending';
+  bool get isConfirmed => status == 'Confirmed';
   bool get isCompleted => status == 'Completed';
   bool get isCancelled => status == 'Cancelled';
   bool get isPaid => paymentStatus == 'Paid' || 

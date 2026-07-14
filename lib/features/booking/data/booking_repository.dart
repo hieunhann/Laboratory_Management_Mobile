@@ -111,6 +111,17 @@ class BookingRepository {
         : null;
   }
 
+  // ─── Get Test Result by Booking ID ──────────────────────────
+  static Future<Map<String, dynamic>?> getTestResultByBookingId(dynamic bookingId) async {
+    try {
+      final response = await ApiClient.get('testorder/api/TestResult/booking/$bookingId');
+      final data = response.data;
+      return data is Map<String, dynamic> ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // ─── VNPay URL ────────────────────────────────────────────
   static Future<String?> getVnPayUrl(dynamic bookingId, num amount) async {
     final response = await ApiClient.post(

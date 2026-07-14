@@ -179,7 +179,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
             ],
           ),
-          if (b.isCompleted) ...[
+          if (b.isCompleted || b.isConfirmed) ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => context.push('/medical-record?bookingId=${b.bookingId}'),
