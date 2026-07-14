@@ -36,13 +36,13 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       // MOCK LOGIN ĐỂ TEST NHANH (Khôi phục nguyên trạng khi yêu cầu)
-      if ((username == 'customer' || username == 'labstaff') &&
+      if ((username == 'customer' || username == 'labstaff' || username == 'admin') &&
           password == '123') {
-        final role = username == 'customer' ? 'Customer' : 'LabUser';
+        final role = username == 'customer' ? 'Customer' : (username == 'admin' ? 'Admin' : 'LabUser');
         final sub = username == 'customer' ? 'cust_mock_123' : 'staff_mock_123';
         final name = username == 'customer'
             ? 'Khách Hàng Thử Nghiệm'
-            : 'Kỹ Thuật Viên Thử Nghiệm';
+            : (username == 'admin' ? 'Admin Quản Trị' : 'Kỹ Thuật Viên Thử Nghiệm');
         final email = '$username@gmail.com';
 
         final header = base64Url.encode(

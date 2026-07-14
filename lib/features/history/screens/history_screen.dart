@@ -105,7 +105,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _catalogNames = cNames;
         _bookings = items
             .map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
-            .where((b) => b.isCompleted) // CHỈ lấy những đơn đã Hoàn thành
             .toList();
         _loading = false;
       });

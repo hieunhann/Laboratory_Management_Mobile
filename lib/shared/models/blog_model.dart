@@ -1,3 +1,5 @@
+import '../../core/utils/format_utils.dart';
+
 class BlogModel {
   final dynamic postId;
   final String? title;
@@ -46,12 +48,8 @@ class BlogModel {
       status: json['status'] as int?,
       categoryId: json['categoryId'] as int?,
       categoryName: json['categoryName']?.toString(),
-      createdAt: (json['createdDate'] ?? json['CreatedDate'] ?? json['createdAt'] ?? json['CreatedAt']) != null
-          ? DateTime.tryParse((json['createdDate'] ?? json['CreatedDate'] ?? json['createdAt'] ?? json['CreatedAt']).toString())
-          : null,
-      updatedAt: (json['updatedDate'] ?? json['UpdatedDate'] ?? json['updatedAt'] ?? json['UpdatedAt']) != null
-          ? DateTime.tryParse((json['updatedDate'] ?? json['UpdatedDate'] ?? json['updatedAt'] ?? json['UpdatedAt']).toString())
-          : null,
+      createdAt: FormatUtils.parseUtcToLocal(json['createdDate']?.toString() ?? json['CreatedDate']?.toString() ?? json['createdAt']?.toString() ?? json['CreatedAt']?.toString()),
+      updatedAt: FormatUtils.parseUtcToLocal(json['updatedDate']?.toString() ?? json['UpdatedDate']?.toString() ?? json['updatedAt']?.toString() ?? json['UpdatedAt']?.toString()),
       commentCount: json['commentCount'] as int?,
     );
   }
@@ -60,6 +58,17 @@ class BlogModel {
   String get displayTitle => title ?? 'Bài viết';
   String get displaySummary =>
       summary ?? (content != null ? _truncate(content!, 100) : '');
+
+  String? get fullImageUrl {
+    if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty) return thumbnailUrl;
+    if (imagePath == null || imagePath!.isEmpty) return null;
+    if (imagePath!.startsWith('http')) return imagePath;
+
+    // Backend GetById sometimes returns absolute OS paths (e.g. /app/Images/file.jpg)
+    // Extract just the file name and append to standard endpoint
+    final fileName = imagePath!.split('/').last.split('\\').last;
+    return 'https://hemalink-gateway-5ils.onrender.com/blog/Images/$fileName';
+  }
 
   String _truncate(String str, int maxLength) {
     if (str.length <= maxLength) return str;

@@ -104,6 +104,53 @@ class BlogRepository {
     }
   }
 
+  // ─── Delete comment ───────────────────────────────────────
+  static Future<bool> deleteComment(dynamic commentId) async {
+    try {
+      await ApiClient.delete('blog/api/Comment/$commentId');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ─── Create Blog ──────────────────────────────────────────
+  static Future<bool> createBlog(dynamic payload) async {
+    try {
+      // payload could be FormData if uploading image, or Map
+      await ApiClient.post('blog/api/BlogPost', data: payload);
+      return true;
+    } catch (e) {
+      print('=== CREATE BLOG ERROR ===');
+      print(e);
+      return false;
+    }
+  }
+
+  // ─── Update Blog ──────────────────────────────────────────
+  static Future<bool> updateBlog(dynamic id, dynamic payload) async {
+    try {
+      await ApiClient.put('blog/api/BlogPost/$id', data: payload);
+      return true;
+    } catch (e) {
+      print('=== UPDATE BLOG ERROR ===');
+      print(e);
+      return false;
+    }
+  }
+
+  // ─── Delete Blog ──────────────────────────────────────────
+  static Future<bool> deleteBlog(dynamic id) async {
+    try {
+      await ApiClient.delete('blog/api/BlogPost/$id');
+      return true;
+    } catch (e) {
+      print('=== DELETE BLOG ERROR ===');
+      print(e);
+      return false;
+    }
+  }
+
   // ─── Helpers ──────────────────────────────────────────────
   static List<BlogModel> _parseBlogs(dynamic data) {
     List items = [];

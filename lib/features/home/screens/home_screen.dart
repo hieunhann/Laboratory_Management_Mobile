@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../data/home_repository.dart';
 import '../../../features/auth/providers/auth_provider.dart';
@@ -600,10 +601,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppTheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
-              child: const Icon(
-                Icons.article_rounded,
-                color: AppTheme.primary,
-                size: 32,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                child: blog.fullImageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: blog.fullImageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Icon(Icons.image, color: Colors.grey),
+                        errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
+                      )
+                    : const Icon(
+                        Icons.article_rounded,
+                        color: AppTheme.primary,
+                        size: 32,
+                      ),
               ),
             ),
             const SizedBox(width: 12),

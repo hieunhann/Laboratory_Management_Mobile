@@ -1,6 +1,25 @@
 import 'package:intl/intl.dart';
 
 class FormatUtils {
+  // ─── Parse UTC string to Local DateTime ───────────────────
+  static DateTime? parseUtcToLocal(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return null;
+    try {
+      String formattedStr = dateStr;
+      // Nếu chuỗi không chứa chỉ thị múi giờ (Z hoặc offset +/-), ta tự động coi nó là UTC
+      if (!dateStr.contains('Z') && !dateStr.contains(RegExp(r'[+-]\d{2}'))) {
+        // Chuỗi có thể chứa khoảng trắng thay vì chữ T (vd: 2026-07-14 15:10:00)
+        formattedStr = dateStr.replaceAll(' ', 'T');
+        if (!formattedStr.endsWith('Z')) {
+          formattedStr = '${formattedStr}Z';
+        }
+      }
+      return DateTime.tryParse(formattedStr)?.toLocal();
+    } catch (_) {
+      return DateTime.tryParse(dateStr)?.toLocal();
+    }
+  }
+
   // ─── Date Formatting ─────────────────────────────────────
   static String formatDate(DateTime? date) {
     if (date == null) return '';
