@@ -28,7 +28,7 @@ class BookingRepository {
 
   // ─── Bundles ──────────────────────────────────────────────
   static Future<List<BundleModel>> getAllBundles() async {
-    final response = await ApiClient.get('testorder/api/CatalogBundle',
+    final response = await ApiClient.get('testorder/api/TestBundle',
         params: {'pageNumber': 1, 'pageSize': 100});
     final items = _asList(response.data);
     return items

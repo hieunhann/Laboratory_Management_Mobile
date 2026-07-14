@@ -4,6 +4,7 @@ import '../../../config/app_theme.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/auth_utils.dart';
 import '../../../shared/models/bundle_model.dart';
+import '../../../shared/models/patient_model.dart';
 import '../data/booking_repository.dart';
 import 'vnpay_webview_screen.dart';
 
@@ -240,9 +241,24 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Chọn hồ sơ bệnh nhân',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Chọn hồ sơ bệnh nhân',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                    ),
+                    TextButton.icon(
+                      onPressed: () async {
+                        final result = await context.push('/create-profile');
+                        if (result == true) {
+                          _load();
+                        }
+                      },
+                      icon: const Icon(Icons.add, size: 20),
+                      label: const Text('Thêm mới'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 Expanded(
@@ -340,6 +356,18 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
                                           ),
                                         ],
                                       ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 20, color: AppTheme.primary),
+                                      onPressed: () async {
+                                        final result = await context.push(
+                                          '/profile/edit',
+                                          extra: PatientModel.fromJson(p),
+                                        );
+                                        if (result == true) {
+                                          _load();
+                                        }
+                                      },
                                     ),
                                     if (isSelected)
                                       const Icon(
@@ -1311,7 +1339,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
         'patientName': fullName.toString(),
         'patientEmail': email.toString(),
         'createdBy': createdBy,
-        if (bundleId != null && bundleId > 0) 'bundleId': bundleId,
+        'bundleId': bundleId ?? 0,
         if (catalogs.isNotEmpty) 'catalogs': catalogs,
         'slotDTO': {'appointmentDate': dateStr, 'timeBlock': timeBlock},
       };

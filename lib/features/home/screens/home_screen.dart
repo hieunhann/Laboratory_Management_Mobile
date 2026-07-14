@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -22,10 +23,36 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loadingBundles = true;
   bool _loadingBlogs = true;
 
+  final ScrollController _bundleScrollController = ScrollController();
+  Timer? _bundleTimer;
+  double _scrollAmount = 192.0;
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    _startBundleTimer();
+  }
+
+  void _startBundleTimer() {
+    _bundleTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_bundleScrollController.hasClients && _bundles.isNotEmpty) {
+        double currentOffset = _bundleScrollController.offset;
+        double targetOffset = ((currentOffset / _scrollAmount).round() + 1) * _scrollAmount;
+        _bundleScrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _bundleTimer?.cancel();
+    _bundleScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -414,23 +441,32 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth - 48) / 2; // 16 lề trái + 16 lề phải + 16 khoảng cách giữa 2 thẻ
+    _scrollAmount = cardWidth + 16;
+
     return SizedBox(
       height: 160,
-      child: ListView.separated(
+      child: ListView.builder(
+        controller: _bundleScrollController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _bundles.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, i) => _buildBundleCard(_bundles[i]),
+        itemBuilder: (_, i) {
+          final bundle = _bundles[i % _bundles.length];
+          return Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _buildBundleCard(bundle, width: cardWidth),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBundleCard(BundleModel bundle) {
+  Widget _buildBundleCard(BundleModel bundle, {double width = 180}) {
     return GestureDetector(
       onTap: () => context.push('/booking'),
       child: Container(
-        width: 180,
+        width: width,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,

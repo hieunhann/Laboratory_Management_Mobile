@@ -35,6 +35,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final patientList = patientData['items'] ?? patientData['data'] ?? [];
 
       if (patientList.isEmpty) {
+        debugPrint('--- DEBUG: patientList is empty ---');
         setState(() { _bookings = []; _loading = false; });
         return;
       }
@@ -42,13 +43,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
       // Lấy patientId đầu tiên (hoặc gom tất cả)
       final patientId = patientList[0]['patientId']?.toString()
           ?? patientList[0]['id']?.toString();
+          
+      debugPrint('--- DEBUG: Found patientId = $patientId ---');
 
       if (patientId == null) {
+        debugPrint('--- DEBUG: patientId is null ---');
         setState(() { _bookings = []; _loading = false; });
         return;
       }
 
       // Bước 2: Lấy booking theo patientId
+      debugPrint('--- DEBUG: Calling testorder/api/Booking/patient with patientId=$patientId ---');
       final response = await ApiClient.get(
         'testorder/api/Booking/patient',
         params: {
@@ -58,12 +63,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
         },
       );
       final data = response.data;
+      debugPrint('--- DEBUG: Booking API response data = $data ---');
+      
       List items = [];
       if (data is Map) {
-        items = data['items'] ?? data['data'] ?? [];
+        items = data['items'] ?? data['data'] ?? data['bookingResponses'] ?? [];
       } else if (data is List) {
         items = data;
       }
+      
+      debugPrint('--- DEBUG: Parsed items length = ${items.length} ---');
 
       setState(() {
         _bookings = items
@@ -72,6 +81,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _loading = false;
       });
     } catch (e) {
+      debugPrint('--- DEBUG: Exception in _fetchBookings = $e ---');
       setState(() { _error = 'Không tải được lịch sử: $e'; _loading = false; });
     }
   }
@@ -129,7 +139,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Đơn #${b.bookingId}',
+                      'Đơn #${b.bookingCode ?? b.bookingId}',
                       style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 15,
                         color: AppTheme.textPrimary,

@@ -167,7 +167,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                 const Icon(Icons.check_circle_rounded, size: 48, color: AppTheme.success),
                 const SizedBox(height: 12),
                 Text(
-                  'Đơn xét nghiệm #${b.bookingId}',
+                  'Đơn xét nghiệm #${b.bookingCode ?? b.bookingId}',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                 ),
                 const SizedBox(height: 4),
@@ -180,7 +180,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                 const SizedBox(height: 16),
                 _detailRow('Bệnh nhân', b.patientName ?? ''),
                 _detailRow('Trạng thái', FormatUtils.formatBookingStatus(b.status)),
-                _detailRow('Thanh toán', b.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'),
+                _detailRow('Thanh toán', (b.isPaid || b.isCompleted) ? 'Đã thanh toán' : 'Chưa thanh toán'),
                 _detailRow('Tổng tiền', formattedPrice, isTotal: true),
               ],
             ),
