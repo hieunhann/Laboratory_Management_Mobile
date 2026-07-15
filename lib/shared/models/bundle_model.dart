@@ -22,9 +22,12 @@ class BundleModel {
       description: json['description']?.toString(),
       price: json['price'] as num?,
       isActive: json['isActive'] as bool?,
-      catalogs: (json['catalogs'] as List<dynamic>?)
-          ?.map((e) => CatalogModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      catalogs: () {
+        final catsRaw = json['catalogs'] ?? json['catalogDTOs'] ?? json['catalogBundles'] ?? json['bundleCatalogs'] ?? json['testCatalogs'] ?? json['tests'] ?? json['testItems'];
+        return (catsRaw as List<dynamic>?)
+            ?.map((e) => CatalogModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }(),
     );
   }
 
