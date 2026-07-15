@@ -77,40 +77,59 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
 
               // Menu cards
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  children: [
-                    _buildMenuCard(
-                      icon: Icons.dashboard_rounded,
-                      label: 'Tổng quan',
-                      color: AppTheme.primary,
-                      onTap: () => context.push('/lab-staff/dashboard'),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.calendar_month_rounded,
-                      label: 'Lịch xét nghiệm',
-                      color: AppTheme.secondary,
-                      onTap: () =>
-                          context.push('/lab-staff/appointment-schedule'),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.article_rounded,
-                      label: 'Quản lý Blog',
-                      color: AppTheme.success,
-                      onTap: () => context.push('/lab-staff/blogs'),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.logout_rounded,
-                      label: 'Đăng xuất',
-                      color: AppTheme.error,
-                      onTap: () async {
-                        await context.read<AuthProvider>().logout();
-                        if (context.mounted) context.go('/login');
-                      },
-                    ),
-                  ],
+                child: Builder(
+                  builder: (context) {
+                    final List<Widget> menuCards = [
+                      _buildMenuCard(
+                        icon: Icons.dashboard_rounded,
+                        label: 'Tổng quan',
+                        color: AppTheme.primary,
+                        onTap: () => context.push('/lab-staff/dashboard'),
+                      ),
+                      _buildMenuCard(
+                        icon: Icons.calendar_month_rounded,
+                        label: 'Lịch xét nghiệm',
+                        color: AppTheme.secondary,
+                        onTap: () => context.push('/lab-staff/appointment-schedule'),
+                      ),
+                      _buildMenuCard(
+                        icon: Icons.article_rounded,
+                        label: 'Quản lý Blog',
+                        color: AppTheme.success,
+                        onTap: () => context.push('/lab-staff/blogs'),
+                      ),
+                      if (_role == 'Admin')
+                        _buildMenuCard(
+                          icon: Icons.admin_panel_settings_rounded,
+                          label: 'Quản lý Quyền',
+                          color: const Color(0xFF673AB7),
+                          onTap: () => context.push('/lab-staff/roles-permissions'),
+                        ),
+                      if (_role == 'Admin' || _role == 'Manager')
+                        _buildMenuCard(
+                          icon: Icons.discount_rounded,
+                          label: 'Quản lý Voucher',
+                          color: const Color(0xFFF57C00),
+                          onTap: () => context.push('/lab-staff/discounts'),
+                        ),
+                      _buildMenuCard(
+                        icon: Icons.logout_rounded,
+                        label: 'Đăng xuất',
+                        color: AppTheme.error,
+                        onTap: () async {
+                          await context.read<AuthProvider>().logout();
+                          if (context.mounted) context.go('/login');
+                        },
+                      ),
+                    ];
+
+                    return GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      children: menuCards,
+                    );
+                  }
                 ),
               ),
             ],
