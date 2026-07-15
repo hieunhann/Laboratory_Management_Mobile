@@ -185,6 +185,14 @@ class _StaffBlogEditorScreenState extends State<StaffBlogEditorScreen> {
                                                         ? widget.existingBlog!.imagePath! 
                                                         : 'https://hemalink-gateway-5ils.onrender.com/blog/${widget.existingBlog!.imagePath!}'),
                                           fit: BoxFit.cover,
+                                          errorWidget: (context, url, error) => const Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                                              SizedBox(height: 8),
+                                              Text('Không tải được ảnh', style: TextStyle(color: Colors.grey)),
+                                            ],
+                                          ),
                                         ),
                                       )
                                     : const Column(
