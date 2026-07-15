@@ -14,7 +14,6 @@ class BlogRepository {
       final params = <String, dynamic>{
         'page': page,
         'pageSize': pageSize,
-        'status': 1,
       };
       if (search != null && search.isNotEmpty) params['search'] = search;
       if (categoryId != null) params['categoryId'] = categoryId;
