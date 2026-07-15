@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../../shared/models/blog_model.dart';
 
@@ -118,7 +119,11 @@ class BlogRepository {
   static Future<bool> createBlog(dynamic payload) async {
     try {
       // payload could be FormData if uploading image, or Map
-      await ApiClient.post('blog/api/BlogPost', data: payload);
+      await ApiClient.instance.post(
+        'blog/api/BlogPost',
+        data: payload,
+        options: payload is FormData ? Options(contentType: 'multipart/form-data') : null,
+      );
       return true;
     } catch (e) {
       print('=== CREATE BLOG ERROR ===');
@@ -130,7 +135,11 @@ class BlogRepository {
   // ─── Update Blog ──────────────────────────────────────────
   static Future<bool> updateBlog(dynamic id, dynamic payload) async {
     try {
-      await ApiClient.put('blog/api/BlogPost/$id', data: payload);
+      await ApiClient.instance.put(
+        'blog/api/BlogPost/$id',
+        data: payload,
+        options: payload is FormData ? Options(contentType: 'multipart/form-data') : null,
+      );
       return true;
     } catch (e) {
       print('=== UPDATE BLOG ERROR ===');
