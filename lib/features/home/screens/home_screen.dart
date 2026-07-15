@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../data/home_repository.dart';
 import '../../../features/auth/providers/auth_provider.dart';
@@ -44,7 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _bundleTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (_bundleScrollController.hasClients && _bundles.isNotEmpty) {
         double currentOffset = _bundleScrollController.offset;
-        double targetOffset = ((currentOffset / _scrollAmount).round() + 1) * _scrollAmount;
+        double targetOffset =
+            ((currentOffset / _scrollAmount).round() + 1) * _scrollAmount;
         _bundleScrollController.animateTo(
           targetOffset,
           duration: const Duration(milliseconds: 800),
@@ -403,7 +403,10 @@ class _HomeScreenState extends State<HomeScreen> {
           return GestureDetector(
             onTap: () {
               final name = s['name'] as String;
-              final keyword = name.replaceAll('Xét nghiệm', '').replaceAll('Kiểm tra', '').trim();
+              final keyword = name
+                  .replaceAll('Xét nghiệm', '')
+                  .replaceAll('Kiểm tra', '')
+                  .trim();
               context.push('/bundles?search=$keyword');
             },
             child: Container(
@@ -467,7 +470,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 48) / 2; // 16 lề trái + 16 lề phải + 16 khoảng cách giữa 2 thẻ
+    final cardWidth =
+        (screenWidth - 48) /
+        2; // 16 lề trái + 16 lề phải + 16 khoảng cách giữa 2 thẻ
     _scrollAmount = cardWidth + 16;
 
     return SizedBox(
@@ -601,20 +606,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppTheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                child: blog.fullImageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: blog.fullImageUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const Icon(Icons.image, color: Colors.grey),
-                        errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
-                      )
-                    : const Icon(
-                        Icons.article_rounded,
-                        color: AppTheme.primary,
-                        size: 32,
-                      ),
+              child: const Icon(
+                Icons.article_rounded,
+                color: AppTheme.primary,
+                size: 32,
               ),
             ),
             const SizedBox(width: 12),

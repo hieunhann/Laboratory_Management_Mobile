@@ -36,13 +36,13 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       // MOCK LOGIN ĐỂ TEST NHANH (Khôi phục nguyên trạng khi yêu cầu)
-      if ((username == 'customer' || username == 'labstaff' || username == 'admin') &&
+      if ((username == 'customer' || username == 'labstaff') &&
           password == '123') {
-        final role = username == 'customer' ? 'Customer' : (username == 'admin' ? 'Admin' : 'LabUser');
+        final role = username == 'customer' ? 'Customer' : 'LabUser';
         final sub = username == 'customer' ? 'cust_mock_123' : 'staff_mock_123';
         final name = username == 'customer'
             ? 'Khách Hàng Thử Nghiệm'
-            : (username == 'admin' ? 'Admin Quản Trị' : 'Kỹ Thuật Viên Thử Nghiệm');
+            : 'Kỹ Thuật Viên Thử Nghiệm';
         final email = '$username@gmail.com';
 
         final header = base64Url.encode(
@@ -92,7 +92,8 @@ class AuthProvider extends ChangeNotifier {
       // Kiểm tra xem đã lưu được token hợp lệ hay chưa
       final token = await SecureStorageService.getAccessToken();
       if (token == null || token.isEmpty) {
-        _errorMessage = res['message']?.toString() ??
+        _errorMessage =
+            res['message']?.toString() ??
             res['error']?.toString() ??
             'Tên đăng nhập hoặc mật khẩu không đúng';
         notifyListeners();

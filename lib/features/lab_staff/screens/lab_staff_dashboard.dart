@@ -186,45 +186,27 @@ class _LabStaffDashboardState extends State<LabStaffDashboard> {
   }
 
   Widget _buildQuickAccess(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickCard(
-                Icons.calendar_month_rounded,
-                'Lịch xét nghiệm',
-                AppTheme.secondary,
-                () => context.push('/lab-staff/appointment-schedule'),
-              ),
-            ),
-            Expanded(
-              child: _buildQuickCard(
-                Icons.article_rounded,
-                'Quản lý Blog',
-                AppTheme.primary,
-                () => context.push('/lab-staff/blogs'),
-              ),
-            ),
-          ],
+        Expanded(
+          child: _buildQuickCard(
+            Icons.calendar_month_rounded,
+            'Lịch xét nghiệm',
+            AppTheme.secondary,
+            () => context.push('/lab-staff/appointment-schedule'),
+          ),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickCard(
-                Icons.logout_rounded,
-                'Đăng xuất',
-                AppTheme.error,
-                () async {
-                  await context.read<AuthProvider>().logout();
-                  if (context.mounted) context.go('/login');
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Spacer(),
-          ],
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildQuickCard(
+            Icons.logout_rounded,
+            'Đăng xuất',
+            AppTheme.error,
+            () async {
+              await context.read<AuthProvider>().logout();
+              if (context.mounted) context.go('/login');
+            },
+          ),
         ),
       ],
     );
