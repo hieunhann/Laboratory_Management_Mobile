@@ -5,11 +5,13 @@ class FormatUtils {
   static DateTime? parseUtcToLocal(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return null;
     try {
-      String formattedStr = dateStr;
-      // Nếu chuỗi không chứa chỉ thị múi giờ (Z hoặc offset +/-), ta tự động coi nó là UTC
-      if (!dateStr.contains('Z') && !dateStr.contains(RegExp(r'[+-]\d{2}'))) {
+      String formattedStr = dateStr.trim();
+      // Kiểm tra xem chuỗi có chỉ thị múi giờ ở cuối hay không (Z hoặc offset dạng +/-HH:MM, +/-HHMM, +/-HH)
+      final hasTimezone = formattedStr.endsWith('Z') || 
+          RegExp(r'[+-]\d{2}(:?\d{2})?$').hasMatch(formattedStr);
+      if (!hasTimezone) {
         // Chuỗi có thể chứa khoảng trắng thay vì chữ T (vd: 2026-07-14 15:10:00)
-        formattedStr = dateStr.replaceAll(' ', 'T');
+        formattedStr = formattedStr.replaceAll(' ', 'T');
         if (!formattedStr.endsWith('Z')) {
           formattedStr = '${formattedStr}Z';
         }

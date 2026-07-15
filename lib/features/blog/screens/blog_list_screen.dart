@@ -4,6 +4,7 @@ import '../../../config/app_theme.dart';
 import '../data/blog_repository.dart';
 import '../../../shared/models/blog_model.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../auth/data/auth_repository.dart';
 
 class BlogListScreen extends StatefulWidget {
   const BlogListScreen({super.key});
@@ -18,6 +19,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
   int? _selectedCategory;
   String _search = '';
   final _searchCtrl = TextEditingController();
+  final Map<String, String> _userNames = {};
 
   @override
   void initState() {
@@ -44,8 +46,11 @@ class _BlogListScreenState extends State<BlogListScreen> {
       setState(() {
         _blogs = results[0] as List<BlogModel>;
         _categories = results[1] as List<BlogCategoryModel>;
-        _loading = false;
       });
+    }
+    await _fetchAuthorNames(_blogs);
+    if (mounted) {
+      setState(() => _loading = false);
     }
   }
 
@@ -55,11 +60,32 @@ class _BlogListScreenState extends State<BlogListScreen> {
       search: _search,
       categoryId: _selectedCategory,
     );
-    if (mounted)
+    await _fetchAuthorNames(blogs);
+    if (mounted) {
       setState(() {
         _blogs = blogs;
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _fetchAuthorNames(List<BlogModel> blogs) async {
+    final uniqueAuthorIds = blogs
+        .map((b) => b.authorId?.toString())
+        .where((id) => id != null && id.isNotEmpty)
+        .map((id) => id!)
+        .toSet();
+
+    await Future.wait(uniqueAuthorIds.map((userId) async {
+      if (!_userNames.containsKey(userId)) {
+        try {
+          final user = await AuthRepository.getUserById(userId);
+          if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
+            _userNames[userId] = user.fullName!;
+          }
+        } catch (_) {}
+      }
+    }));
   }
 
   @override
@@ -243,19 +269,30 @@ class _BlogListScreenState extends State<BlogListScreen> {
                   ),
                   const SizedBox(height: 10),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        Icons.person_outline_rounded,
-                        size: 13,
-                        color: AppTheme.textHint,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        blog.authorName ?? 'Tác giả',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textHint,
-                        ),
+                      Builder(
+                        builder: (context) {
+                          final authorIdStr = blog.authorId?.toString();
+                          final resolvedName = (authorIdStr != null ? _userNames[authorIdStr] : null) ?? blog.authorName ?? 'Tác giả';
+                          return Row(
+                            children: [
+                              const Icon(
+                                Icons.person_outline_rounded,
+                                size: 13,
+                                color: AppTheme.textHint,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                resolvedName,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textHint,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                       const Spacer(),
                       if (blog.createdAt != null)

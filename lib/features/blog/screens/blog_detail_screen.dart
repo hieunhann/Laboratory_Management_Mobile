@@ -252,22 +252,34 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         // Meta
                         Row(
                           children: [
-                            if (_resolvedAuthorName != null || (_blog!.authorName != null && _blog!.authorName!.isNotEmpty)) ...[
-                              const Icon(
-                                Icons.person_outline_rounded,
-                                size: 14,
-                                color: AppTheme.textHint,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _resolvedAuthorName ?? _blog!.authorName!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppTheme.textHint,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                            ],
+                            Builder(
+                              builder: (context) {
+                                final authorDisplay = _resolvedAuthorName ?? _blog!.authorName;
+                                if (authorDisplay != null &&
+                                    authorDisplay.isNotEmpty &&
+                                    authorDisplay != 'Tác giả') {
+                                  return Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.person_outline_rounded,
+                                        size: 14,
+                                        color: AppTheme.textHint,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        authorDisplay,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textHint,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                    ],
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
                             const Icon(
                               Icons.calendar_today_rounded,
                               size: 14,
