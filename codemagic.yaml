@@ -1,0 +1,22 @@
+workflows:
+  ios-sideload-workflow:
+    name: iOS Build for Sideloadly
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: default
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: flutter pub get
+      - name: Build iOS unsigned
+        script: flutter build ios --release --no-codesign
+      - name: Package IPA for Sideloadly
+        script: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          mv Runner.app Payload/
+          zip -r -q App.ipa Payload
+    artifacts:
+      - build/ios/iphoneos/App.ipa
