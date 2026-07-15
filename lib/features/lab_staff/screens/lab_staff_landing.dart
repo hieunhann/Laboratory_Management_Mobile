@@ -95,21 +95,12 @@ class _LabStaffLandingState extends State<LabStaffLanding> {
                       onTap: () =>
                           context.push('/lab-staff/appointment-schedule'),
                     ),
-                    if (_role == 'Admin')
-                      _buildMenuCard(
-                        icon: Icons.admin_panel_settings_rounded,
-                        label: 'Quản lý Quyền',
-                        color: Colors.indigo,
-                        onTap: () =>
-                            context.push('/lab-staff/roles-permissions'),
-                      ),
-                    if (_role == 'Admin' || _role == 'Manager')
-                      _buildMenuCard(
-                        icon: Icons.discount_rounded,
-                        label: 'Quản lý Voucher',
-                        color: Colors.amber[800]!,
-                        onTap: () => context.push('/lab-staff/discounts'),
-                      ),
+                    _buildMenuCard(
+                      icon: Icons.article_rounded,
+                      label: 'Quản lý Blog',
+                      color: AppTheme.success,
+                      onTap: () => context.push('/lab-staff/blogs'),
+                    ),
                     _buildMenuCard(
                       icon: Icons.logout_rounded,
                       label: 'Đăng xuất',

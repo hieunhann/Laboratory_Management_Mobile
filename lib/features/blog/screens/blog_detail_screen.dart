@@ -21,10 +21,6 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
   BlogModel? _blog;
   List<Map<String, dynamic>> _comments = [];
   Map<String, String> _userNames = {};
-  final Map<int, String?> _userReactions = {};
-  final Map<int, int> _commentLikes = {};
-  final Map<int, int> _commentDislikes = {};
-  String? _resolvedAuthorName;
   bool _loading = true;
   final _commentCtrl = TextEditingController();
   bool _submitting = false;
@@ -47,7 +43,7 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
       BlogRepository.getBlogById(widget.postId),
       BlogRepository.getComments(widget.postId),
     ]);
-
+    
     final blog = results[0] as BlogModel?;
     final comments = results[1] as List<Map<String, dynamic>>;
 
@@ -63,51 +59,22 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
     }
 
     final namesMap = <String, String>{};
-    await Future.wait(
-      uniqueUserIds.map((userId) async {
-        try {
-          final user = await AuthRepository.getUserById(userId!);
-          if (user != null &&
-              user.fullName != null &&
-              user.fullName!.isNotEmpty) {
-            namesMap[userId] = user.fullName!;
-          }
-        } catch (_) {
-          // Bỏ qua lỗi kết nối đơn lẻ
-        }
-      }),
-    );
-
-    // Khởi tạo số lượng likes/dislikes ngẫu nhiên giả lập cho mỗi comment
-    for (var c in comments) {
-      final commentId = c['commentId'] as int? ?? c['CommentId'] as int? ?? 0;
-      if (commentId != 0) {
-        _commentLikes[commentId] ??= (commentId * 7) % 19;
-        _commentDislikes[commentId] ??= (commentId * 3) % 7;
-      }
-    }
-
-    // Tìm tên tác giả từ authorId
-    String? resolvedAuthor;
-    if (blog != null && blog.authorId != null && blog.authorId!.isNotEmpty) {
+    await Future.wait(uniqueUserIds.map((userId) async {
       try {
-        final user = await AuthRepository.getUserById(blog.authorId!);
-        if (user != null &&
-            user.fullName != null &&
-            user.fullName!.isNotEmpty) {
-          resolvedAuthor = user.fullName;
+        final user = await AuthRepository.getUserById(userId!);
+        if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
+          namesMap[userId] = user.fullName!;
         }
       } catch (_) {
         // Bỏ qua lỗi kết nối đơn lẻ
       }
-    }
+    }));
 
     if (mounted) {
       setState(() {
         _blog = blog;
         _comments = comments;
         _userNames = namesMap;
-        _resolvedAuthorName = resolvedAuthor;
         _loading = false;
       });
     }
@@ -135,36 +102,6 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
       await _loadBlog();
     }
     if (mounted) setState(() => _submitting = false);
-  }
-
-  void _toggleReaction(int commentId, String type) {
-    if (commentId == 0) return;
-    setState(() {
-      final currentReaction = _userReactions[commentId];
-      if (currentReaction == type) {
-        // Hủy reaction
-        _userReactions[commentId] = null;
-        if (type == 'like') {
-          _commentLikes[commentId] = (_commentLikes[commentId] ?? 1) - 1;
-        } else {
-          _commentDislikes[commentId] = (_commentDislikes[commentId] ?? 1) - 1;
-        }
-      } else {
-        // Đổi reaction hoặc thêm mới
-        if (currentReaction == 'like') {
-          _commentLikes[commentId] = (_commentLikes[commentId] ?? 1) - 1;
-        } else if (currentReaction == 'dislike') {
-          _commentDislikes[commentId] = (_commentDislikes[commentId] ?? 1) - 1;
-        }
-
-        _userReactions[commentId] = type;
-        if (type == 'like') {
-          _commentLikes[commentId] = (_commentLikes[commentId] ?? 0) + 1;
-        } else {
-          _commentDislikes[commentId] = (_commentDislikes[commentId] ?? 0) + 1;
-        }
-      }
-    });
   }
 
   @override
@@ -252,34 +189,23 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         // Meta
                         Row(
                           children: [
-                            Builder(
-                              builder: (context) {
-                                final authorDisplay = _resolvedAuthorName ?? _blog!.authorName;
-                                if (authorDisplay != null &&
-                                    authorDisplay.isNotEmpty &&
-                                    authorDisplay != 'Tác giả') {
-                                  return Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.person_outline_rounded,
-                                        size: 14,
-                                        color: AppTheme.textHint,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        authorDisplay,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.textHint,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                    ],
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
+                            if ((_blog!.authorId != null && _userNames.containsKey(_blog!.authorId)) || 
+                                (_blog!.authorName != null && _blog!.authorName!.isNotEmpty)) ...[
+                              const Icon(
+                                Icons.person_outline_rounded,
+                                size: 14,
+                                color: AppTheme.textHint,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _userNames[_blog!.authorId] ?? _blog!.authorName!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textHint,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                            ],
                             const Icon(
                               Icons.calendar_today_rounded,
                               size: 14,
@@ -373,17 +299,6 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
     final userId = c['userId']?.toString() ?? c['UserId']?.toString() ?? '';
     final displayName = _userNames[userId] ?? (userId.isNotEmpty ? userId : 'Người dùng');
     
-    final createdDateStr = c['createdDate']?.toString() ?? c['CreatedDate']?.toString();
-    final parsedDate = FormatUtils.parseUtcToLocal(createdDateStr);
-    final dateText = FormatUtils.formatDateTime(parsedDate);
-
-    final commentId = c['commentId'] as int? ?? c['CommentId'] as int? ?? 0;
-    final userReaction = _userReactions[commentId];
-    final hasLiked = userReaction == 'like';
-    final hasDisliked = userReaction == 'dislike';
-    final likesCount = _commentLikes[commentId] ?? 0;
-    final dislikesCount = _commentDislikes[commentId] ?? 0;
-
     // Check role
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final role = authProvider.role;
@@ -416,29 +331,12 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        displayName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (dateText.isNotEmpty)
-                      Text(
-                        dateText,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textHint,
-                        ),
-                      ),
-                  ],
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -448,72 +346,6 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                     color: AppTheme.textSecondary,
                   ),
                 ),
-                if (commentId != 0) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => _toggleReaction(commentId, 'like'),
-                        child: Row(
-                          children: [
-                            Icon(
-                              hasLiked
-                                  ? Icons.thumb_up_rounded
-                                  : Icons.thumb_up_outlined,
-                              size: 14,
-                              color: hasLiked
-                                  ? AppTheme.primary
-                                  : AppTheme.textHint,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              likesCount.toString(),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: hasLiked
-                                    ? AppTheme.primary
-                                    : AppTheme.textHint,
-                                fontWeight: hasLiked
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      GestureDetector(
-                        onTap: () => _toggleReaction(commentId, 'dislike'),
-                        child: Row(
-                          children: [
-                            Icon(
-                              hasDisliked
-                                  ? Icons.thumb_down_rounded
-                                  : Icons.thumb_down_outlined,
-                              size: 14,
-                              color: hasDisliked
-                                  ? Colors.red
-                                  : AppTheme.textHint,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              dislikesCount.toString(),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: hasDisliked
-                                    ? Colors.red
-                                    : AppTheme.textHint,
-                                fontWeight: hasDisliked
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ],
             ),
           ),

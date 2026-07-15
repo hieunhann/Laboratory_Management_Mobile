@@ -1,5 +1,3 @@
-import '../../core/utils/format_utils.dart';
-
 class BlogModel {
   final dynamic postId;
   final String? title;
@@ -48,8 +46,12 @@ class BlogModel {
       status: json['status'] as int?,
       categoryId: json['categoryId'] as int?,
       categoryName: json['categoryName']?.toString(),
-      createdAt: FormatUtils.parseUtcToLocal(json['createdDate']?.toString() ?? json['CreatedDate']?.toString() ?? json['createdAt']?.toString() ?? json['CreatedAt']?.toString()),
-      updatedAt: FormatUtils.parseUtcToLocal(json['updatedDate']?.toString() ?? json['UpdatedDate']?.toString() ?? json['updatedAt']?.toString() ?? json['UpdatedAt']?.toString()),
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : (json['createdDate'] != null ? DateTime.tryParse(json['createdDate'].toString()) : null),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'].toString())
+          : null,
       commentCount: json['commentCount'] as int?,
     );
   }
