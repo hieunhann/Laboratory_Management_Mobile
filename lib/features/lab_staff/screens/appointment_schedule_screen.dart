@@ -38,12 +38,14 @@ class _AppointmentScheduleScreenState extends State<AppointmentScheduleScreen> {
       final Map<int, String> bNames = {};
       final Map<int, String> cNames = {};
       for (var b in bundles) {
-        if (b.bundleId != null && b.bundleName != null)
+        if (b.bundleId != null && b.bundleName != null) {
           bNames[b.bundleId!] = b.bundleName!;
+        }
       }
       for (var c in catalogs) {
-        if (c.catalogId != null && c.catalogName != null)
+        if (c.catalogId != null && c.catalogName != null) {
           cNames[c.catalogId!] = c.catalogName!;
+        }
       }
 
       final data = await LabStaffRepository.getAppointments(date: dateStr);

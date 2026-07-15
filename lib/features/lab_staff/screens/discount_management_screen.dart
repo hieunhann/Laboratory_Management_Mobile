@@ -9,7 +9,8 @@ class DiscountManagementScreen extends StatefulWidget {
   const DiscountManagementScreen({super.key});
 
   @override
-  State<DiscountManagementScreen> createState() => _DiscountManagementScreenState();
+  State<DiscountManagementScreen> createState() =>
+      _DiscountManagementScreenState();
 }
 
 class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
@@ -59,10 +60,18 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xác nhận xóa', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text('Bạn có chắc chắn muốn xóa mã giảm giá "$code" không? Action này không thể hoàn tác.'),
+        title: const Text(
+          'Xác nhận xóa',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Bạn có chắc chắn muốn xóa mã giảm giá "$code" không? Action này không thể hoàn tác.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
@@ -106,7 +115,9 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppTheme.radiusLg),
+                ),
               ),
               child: SingleChildScrollView(
                 child: Form(
@@ -118,7 +129,11 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                       const Center(
                         child: Text(
                           'Tạo mã giảm giá mới',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -147,7 +162,8 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                       TextFormField(
                         decoration: const InputDecoration(
                           labelText: 'Mô tả khuyến mãi',
-                          hintText: 'Nhập nội dung hiển thị (Ví dụ: Giảm 20% đơn khám)',
+                          hintText:
+                              'Nhập nội dung hiển thị (Ví dụ: Giảm 20% đơn khám)',
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -161,11 +177,19 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
 
                       // Discount Type
                       DropdownButtonFormField<String>(
-                        value: discountType,
-                        decoration: const InputDecoration(labelText: 'Loại hình giảm giá'),
+                        initialValue: discountType,
+                        decoration: const InputDecoration(
+                          labelText: 'Loại hình giảm giá',
+                        ),
                         items: const [
-                          DropdownMenuItem(value: 'percentage', child: Text('Phần trăm (%)')),
-                          DropdownMenuItem(value: 'fixed', child: Text('Số tiền cố định (đ)')),
+                          DropdownMenuItem(
+                            value: 'percentage',
+                            child: Text('Phần trăm (%)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'fixed',
+                            child: Text('Số tiền cố định (đ)'),
+                          ),
                         ],
                         onChanged: (val) {
                           setModalState(() {
@@ -183,15 +207,19 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 labelText: 'Giá trị giảm',
-                                suffixText: discountType == 'percentage' ? '%' : 'đ',
+                                suffixText: discountType == 'percentage'
+                                    ? '%'
+                                    : 'đ',
                               ),
                               validator: (value) {
-                                if (value == null || double.tryParse(value) == null) {
+                                if (value == null ||
+                                    double.tryParse(value) == null) {
                                   return 'Giá trị không hợp lệ';
                                 }
                                 final val = double.parse(value);
                                 if (val <= 0) return 'Phải lớn hơn 0';
-                                if (discountType == 'percentage' && val > 100) return 'Tối đa 100%';
+                                if (discountType == 'percentage' && val > 100)
+                                  return 'Tối đa 100%';
                                 return null;
                               },
                               onSaved: (val) => value = double.parse(val!),
@@ -205,14 +233,16 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                                 labelText: 'Đơn hàng tối thiểu (đ)',
                               ),
                               validator: (value) {
-                                if (value == null || double.tryParse(value) == null) {
+                                if (value == null ||
+                                    double.tryParse(value) == null) {
                                   return 'Số tiền không hợp lệ';
                                 }
                                 final val = double.parse(value);
                                 if (val < 0) return 'Không được âm';
                                 return null;
                               },
-                              onSaved: (val) => minOrderAmount = double.parse(val!),
+                              onSaved: (val) =>
+                                  minOrderAmount = double.parse(val!),
                             ),
                           ),
                         ],
@@ -224,18 +254,22 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                         TextFormField(
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            labelText: 'Số tiền giảm tối đa (đ - Bỏ trống nếu không giới hạn)',
+                            labelText:
+                                'Số tiền giảm tối đa (đ - Bỏ trống nếu không giới hạn)',
                           ),
                           validator: (value) {
                             if (value != null && value.trim().isNotEmpty) {
-                              if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                              if (double.tryParse(value) == null ||
+                                  double.parse(value) <= 0) {
                                 return 'Số tiền không hợp lệ';
                               }
                             }
                             return null;
                           },
                           onSaved: (val) => maxDiscountAmount =
-                              (val != null && val.trim().isNotEmpty) ? double.parse(val) : null,
+                              (val != null && val.trim().isNotEmpty)
+                              ? double.parse(val)
+                              : null,
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -247,7 +281,9 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                             context: context,
                             initialDate: expiryDate,
                             firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365 * 5),
+                            ),
                           );
                           if (selected != null) {
                             setModalState(() {
@@ -258,7 +294,10 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                         child: InputDecorator(
                           decoration: const InputDecoration(
                             labelText: 'Ngày hết hạn',
-                            suffixIcon: Icon(Icons.calendar_today_rounded, size: 20),
+                            suffixIcon: Icon(
+                              Icons.calendar_today_rounded,
+                              size: 20,
+                            ),
                           ),
                           child: Text(
                             '${expiryDate.day}/${expiryDate.month}/${expiryDate.year}',
@@ -294,13 +333,21 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
                                     isActive: true,
                                   );
 
-                                  final success = await DiscountRepository.addDiscount(voucher);
+                                  final success =
+                                      await DiscountRepository.addDiscount(
+                                        voucher,
+                                      );
                                   if (success) {
-                                    _showToast('Đã thêm thành công mã giảm giá $code');
+                                    _showToast(
+                                      'Đã thêm thành công mã giảm giá $code',
+                                    );
                                     if (ctx.mounted) Navigator.pop(ctx);
                                     _loadData();
                                   } else {
-                                    _showToast('Mã giảm giá $code đã tồn tại trên hệ thống!', isError: true);
+                                    _showToast(
+                                      'Mã giảm giá $code đã tồn tại trên hệ thống!',
+                                      isError: true,
+                                    );
                                   }
                                 }
                               },
@@ -351,7 +398,10 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Tìm kiếm mã voucher...',
-                prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.textSecondary),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  color: AppTheme.textSecondary,
+                ),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -371,118 +421,147 @@ class _DiscountManagementScreenState extends State<DiscountManagementScreen> {
           // Content
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppTheme.primary),
+                  )
                 : filteredDiscounts.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Không có mã giảm giá nào',
-                          style: TextStyle(color: AppTheme.textSecondary),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: filteredDiscounts.length,
-                        itemBuilder: (context, index) {
-                          final d = filteredDiscounts[index];
-                          final isExpired = d.expiryDate.isBefore(DateTime.now());
-                          final color = d.isActive && !isExpired ? AppTheme.primary : Colors.grey[500]!;
+                ? const Center(
+                    child: Text(
+                      'Không có mã giảm giá nào',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filteredDiscounts.length,
+                    itemBuilder: (context, index) {
+                      final d = filteredDiscounts[index];
+                      final isExpired = d.expiryDate.isBefore(DateTime.now());
+                      final color = d.isActive && !isExpired
+                          ? AppTheme.primary
+                          : Colors.grey[500]!;
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                              boxShadow: AppTheme.cardShadow,
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                              child: Banner(
-                                message: isExpired
-                                    ? 'HẾT HẠN'
-                                    : d.isActive
-                                        ? 'ĐANG MỞ'
-                                        : 'TẠM KHOÁ',
-                                location: BannerLocation.topEnd,
-                                color: isExpired
-                                    ? Colors.red
-                                    : d.isActive
-                                        ? AppTheme.secondary
-                                        : Colors.grey,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                          boxShadow: AppTheme.cardShadow,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                          child: Banner(
+                            message: isExpired
+                                ? 'HẾT HẠN'
+                                : d.isActive
+                                ? 'ĐANG MỞ'
+                                : 'TẠM KHOÁ',
+                            location: BannerLocation.topEnd,
+                            color: isExpired
+                                ? Colors.red
+                                : d.isActive
+                                ? AppTheme.secondary
+                                : Colors.grey,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
                                     children: [
-                                      Row(
-                                        children: [
-                                          // Voucher Code Badge (Ticket look)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: color.withValues(alpha: 0.1),
-                                              border: Border.all(color: color, style: BorderStyle.solid, width: 1.5),
-                                              borderRadius: BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              d.code,
-                                              style: TextStyle(
-                                                color: color,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                                letterSpacing: 1.1,
-                                              ),
-                                            ),
+                                      // Voucher Code Badge (Ticket look)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: color.withValues(alpha: 0.1),
+                                          border: Border.all(
+                                            color: color,
+                                            style: BorderStyle.solid,
+                                            width: 1.5,
                                           ),
-                                          const Spacer(),
-                                          // Switch control
-                                          Switch(
-                                            value: d.isActive,
-                                            activeColor: AppTheme.primary,
-                                            onChanged: isExpired
-                                                ? null
-                                                : (val) => _toggleStatus(d.code, val),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
                                           ),
-                                          IconButton(
-                                            icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-                                            onPressed: () => _deleteVoucher(d.code),
+                                        ),
+                                        child: Text(
+                                          d.code,
+                                          style: TextStyle(
+                                            color: color,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            letterSpacing: 1.1,
                                           ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        d.description,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: AppTheme.textPrimary,
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Min đơn: ${_formatAmount(d.minOrderAmount)}đ',
-                                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                                          ),
-                                          Text(
-                                            'Hạn dùng: ${d.expiryDate.day}/${d.expiryDate.month}/${d.expiryDate.year}',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isExpired ? Colors.red : AppTheme.textSecondary,
-                                              fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
-                                            ),
-                                          ),
-                                        ],
+                                      const Spacer(),
+                                      // Switch control
+                                      Switch(
+                                        value: d.isActive,
+                                        activeThumbColor: AppTheme.primary,
+                                        onChanged: isExpired
+                                            ? null
+                                            : (val) =>
+                                                  _toggleStatus(d.code, val),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () => _deleteVoucher(d.code),
                                       ),
                                     ],
                                   ),
-                                ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    d.description,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Min đơn: ${_formatAmount(d.minOrderAmount)}đ',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Hạn dùng: ${d.expiryDate.day}/${d.expiryDate.month}/${d.expiryDate.year}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: isExpired
+                                              ? Colors.red
+                                              : AppTheme.textSecondary,
+                                          fontWeight: isExpired
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

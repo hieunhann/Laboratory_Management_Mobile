@@ -224,11 +224,12 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
       } else if (data is Map) {
         items = data['items'] ?? data['data'] ?? [];
       }
-      if (mounted)
+      if (mounted) {
         setState(() {
           _patients = items.cast<Map<String, dynamic>>();
           _loading = false;
         });
+      }
     } catch (e) {
       if (mounted) setState(() => _loading = false);
     }
@@ -250,7 +251,10 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
                   children: [
                     const Text(
                       'Chọn hồ sơ bệnh nhân',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     TextButton.icon(
                       onPressed: () async {
@@ -362,7 +366,11 @@ class _PatientSelectionStepState extends State<_PatientSelectionStep> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.edit_outlined, size: 20, color: AppTheme.primary),
+                                      icon: const Icon(
+                                        Icons.edit_outlined,
+                                        size: 20,
+                                        color: AppTheme.primary,
+                                      ),
                                       onPressed: () async {
                                         final result = await context.push(
                                           '/profile/edit',
@@ -406,7 +414,11 @@ class _TestSelectionStep extends StatefulWidget {
   final Function(Map<String, dynamic>) onNext;
   final VoidCallback onBack;
   final int? initialBundleId;
-  const _TestSelectionStep({required this.onNext, required this.onBack, this.initialBundleId});
+  const _TestSelectionStep({
+    required this.onNext,
+    required this.onBack,
+    this.initialBundleId,
+  });
 
   @override
   State<_TestSelectionStep> createState() => _TestSelectionStepState();
@@ -1312,7 +1324,9 @@ class _ConfirmStepState extends State<_ConfirmStep> {
       final list = await DiscountRepository.getDiscounts();
       if (mounted) {
         setState(() {
-          _availableVouchers = list.where((d) => d.isActive && d.expiryDate.isAfter(DateTime.now())).toList();
+          _availableVouchers = list
+              .where((d) => d.isActive && d.expiryDate.isAfter(DateTime.now()))
+              .toList();
           _loadingVouchers = false;
         });
       }
@@ -1326,7 +1340,9 @@ class _ConfirmStepState extends State<_ConfirmStep> {
     if (originalTotal < d.minOrderAmount) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Voucher này chỉ áp dụng cho đơn hàng từ ${_formatPrice(d.minOrderAmount)}đ'),
+          content: Text(
+            'Voucher này chỉ áp dụng cho đơn hàng từ ${_formatPrice(d.minOrderAmount)}đ',
+          ),
           backgroundColor: AppTheme.error,
         ),
       );
@@ -1403,7 +1419,9 @@ class _ConfirmStepState extends State<_ConfirmStep> {
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppTheme.radiusLg),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1411,7 +1429,11 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                   const Center(
                     child: Text(
                       'Chọn hoặc nhập mã giảm giá',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -1425,17 +1447,26 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                           textCapitalization: TextCapitalization.characters,
                           decoration: const InputDecoration(
                             hintText: 'Nhập mã giảm giá của bạn...',
-                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
                         onPressed: () async {
-                          final code = _customCodeController.text.trim().toUpperCase();
+                          final code = _customCodeController.text
+                              .trim()
+                              .toUpperCase();
                           if (code.isEmpty) return;
 
-                          final error = await DiscountRepository.validateDiscountCode(code, originalTotal);
+                          final error =
+                              await DiscountRepository.validateDiscountCode(
+                                code,
+                                originalTotal,
+                              );
                           if (error != null) {
                             _showErrorSnackBar(error);
                             return;
@@ -1443,15 +1474,20 @@ class _ConfirmStepState extends State<_ConfirmStep> {
 
                           // Tìm voucher để áp dụng
                           final list = await DiscountRepository.getDiscounts();
-                          final d = list.firstWhere((item) => item.code.toUpperCase() == code);
-                          
+                          final d = list.firstWhere(
+                            (item) => item.code.toUpperCase() == code,
+                          );
+
                           _removeVoucher(); // Gỡ voucher cũ nếu có
                           _applyVoucher(d);
                           _customCodeController.clear();
                           if (ctx.mounted) Navigator.pop(ctx);
                         },
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                         ),
                         child: const Text('Áp dụng'),
                       ),
@@ -1460,122 +1496,161 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                   const SizedBox(height: 20),
                   const Text(
                     'Voucher có sẵn dành cho bạn',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 8),
 
                   Expanded(
                     child: _loadingVouchers
-                        ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppTheme.primary,
+                            ),
+                          )
                         : _availableVouchers.isEmpty
-                            ? const Center(
-                                child: Text('Không có voucher khuyến mãi nào khả dụng.', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                              )
-                            : ListView.builder(
-                                itemCount: _availableVouchers.length,
-                                itemBuilder: (context, idx) {
-                                  final d = _availableVouchers[idx];
-                                  final isEligible = originalTotal >= d.minOrderAmount;
-                                  final isCurrentlyApplied = _appliedDiscount?.code == d.code;
+                        ? const Center(
+                            child: Text(
+                              'Không có voucher khuyến mãi nào khả dụng.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: _availableVouchers.length,
+                            itemBuilder: (context, idx) {
+                              final d = _availableVouchers[idx];
+                              final isEligible =
+                                  originalTotal >= d.minOrderAmount;
+                              final isCurrentlyApplied =
+                                  _appliedDiscount?.code == d.code;
 
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: isCurrentlyApplied
-                                          ? AppTheme.primary.withValues(alpha: 0.05)
-                                          : Colors.white,
-                                      border: Border.all(
-                                        color: isCurrentlyApplied
-                                            ? AppTheme.primary
-                                            : Colors.grey[200]!,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: isCurrentlyApplied
+                                      ? AppTheme.primary.withValues(alpha: 0.05)
+                                      : Colors.white,
+                                  border: Border.all(
+                                    color: isCurrentlyApplied
+                                        ? AppTheme.primary
+                                        : Colors.grey[200]!,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.discount_rounded,
+                                      color: isEligible
+                                          ? AppTheme.primary
+                                          : Colors.grey,
+                                      size: 24,
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.discount_rounded,
-                                          color: isEligible ? AppTheme.primary : Colors.grey,
-                                          size: 24,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
                                             children: [
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    d.code,
-                                                    style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      color: isEligible ? AppTheme.textPrimary : Colors.grey,
-                                                      fontSize: 13,
-                                                    ),
-                                                  ),
-                                                  if (isCurrentlyApplied) ...[
-                                                    const SizedBox(width: 8),
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                      decoration: BoxDecoration(
-                                                        color: AppTheme.secondary.withValues(alpha: 0.1),
-                                                        borderRadius: BorderRadius.circular(4),
-                                                      ),
-                                                      child: const Text(
-                                                        'Đã chọn',
-                                                        style: TextStyle(
-                                                          color: AppTheme.secondary,
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 8,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
-                                              const SizedBox(height: 4),
                                               Text(
-                                                d.description,
+                                                d.code,
                                                 style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: isEligible ? AppTheme.textSecondary : Colors.grey[400],
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isEligible
+                                                      ? AppTheme.textPrimary
+                                                      : Colors.grey,
+                                                  fontSize: 13,
                                                 ),
                                               ),
-                                              if (!isEligible) ...[
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  'Chưa đủ điều kiện (đơn tối thiểu ${_formatPrice(d.minOrderAmount)}đ)',
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.red,
-                                                    fontWeight: FontWeight.w500,
+                                              if (isCurrentlyApplied) ...[
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: AppTheme.secondary
+                                                        .withValues(alpha: 0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                  ),
+                                                  child: const Text(
+                                                    'Đã chọn',
+                                                    style: TextStyle(
+                                                      color: AppTheme.secondary,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 8,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
                                             ],
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        if (isEligible)
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              _removeVoucher(); // Gỡ voucher cũ nếu có
-                                              _applyVoucher(d);
-                                              if (ctx.mounted) Navigator.pop(ctx);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                              minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            d.description,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isEligible
+                                                  ? AppTheme.textSecondary
+                                                  : Colors.grey[400],
                                             ),
-                                            child: const Text('Chọn', style: TextStyle(fontSize: 11)),
                                           ),
-                                      ],
+                                          if (!isEligible) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Chưa đủ điều kiện (đơn tối thiểu ${_formatPrice(d.minOrderAmount)}đ)',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
+                                    const SizedBox(width: 8),
+                                    if (isEligible)
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          _removeVoucher(); // Gỡ voucher cũ nếu có
+                                          _applyVoucher(d);
+                                          if (ctx.mounted) Navigator.pop(ctx);
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: const Text(
+                                          'Chọn',
+                                          style: TextStyle(fontSize: 11),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -1735,22 +1810,33 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                     _infoRow('Ngày khám', appointmentDate),
                     _infoRow('Giờ khám', timeBlock),
                     const Divider(height: 24),
-                    
+
                     // --- Voucher/Discount Section ---
                     Row(
                       children: [
-                        const Icon(Icons.discount_rounded, color: AppTheme.primary, size: 18),
+                        const Icon(
+                          Icons.discount_rounded,
+                          color: AppTheme.primary,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         const Text(
                           'Mã giảm giá',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
                         ),
                         const Spacer(),
                         if (_appliedDiscount != null) ...[
                           GestureDetector(
                             onTap: _removeVoucher,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.red.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
@@ -1759,10 +1845,18 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                                 children: [
                                   Text(
                                     _appliedDiscount!.code,
-                                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 11),
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(Icons.close, color: Colors.red, size: 10),
+                                  const Icon(
+                                    Icons.close,
+                                    color: Colors.red,
+                                    size: 10,
+                                  ),
                                 ],
                               ),
                             ),
@@ -1779,9 +1873,17 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                               children: [
                                 Text(
                                   'Chọn hoặc nhập mã',
-                                  style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                    color: AppTheme.primary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                Icon(Icons.chevron_right_rounded, color: AppTheme.primary, size: 16),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: AppTheme.primary,
+                                  size: 16,
+                                ),
                               ],
                             ),
                           ),
@@ -1791,10 +1893,7 @@ class _ConfirmStepState extends State<_ConfirmStep> {
                     const Divider(height: 24),
 
                     // Price Breakdown
-                    _infoRow(
-                      'Tạm tính',
-                      '${_formatPrice(originalTotal)} đ',
-                    ),
+                    _infoRow('Tạm tính', '${_formatPrice(originalTotal)} đ'),
                     if (_appliedDiscount != null)
                       _infoRow(
                         'Khuyến mãi',
@@ -1843,7 +1942,12 @@ class _ConfirmStepState extends State<_ConfirmStep> {
     );
   }
 
-  Widget _infoRow(String label, String value, {bool isTotal = false, Color? customColor}) {
+  Widget _infoRow(
+    String label,
+    String value, {
+    bool isTotal = false,
+    Color? customColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -1861,7 +1965,9 @@ class _ConfirmStepState extends State<_ConfirmStep> {
               textAlign: TextAlign.end,
               style: TextStyle(
                 fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
-                color: customColor ?? (isTotal ? AppTheme.primary : AppTheme.textPrimary),
+                color:
+                    customColor ??
+                    (isTotal ? AppTheme.primary : AppTheme.textPrimary),
                 fontSize: isTotal ? 16 : 13,
               ),
             ),

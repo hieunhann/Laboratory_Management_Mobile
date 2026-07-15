@@ -43,7 +43,7 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
       BlogRepository.getBlogById(widget.postId),
       BlogRepository.getComments(widget.postId),
     ]);
-    
+
     final blog = results[0] as BlogModel?;
     final comments = results[1] as List<Map<String, dynamic>>;
 
@@ -53,22 +53,26 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
         .where((id) => id != null && id.isNotEmpty)
         .map((id) => id!)
         .toSet();
-        
+
     if (blog != null && blog.authorId != null && blog.authorId!.isNotEmpty) {
       uniqueUserIds.add(blog.authorId!);
     }
 
     final namesMap = <String, String>{};
-    await Future.wait(uniqueUserIds.map((userId) async {
-      try {
-        final user = await AuthRepository.getUserById(userId!);
-        if (user != null && user.fullName != null && user.fullName!.isNotEmpty) {
-          namesMap[userId] = user.fullName!;
+    await Future.wait(
+      uniqueUserIds.map((userId) async {
+        try {
+          final user = await AuthRepository.getUserById(userId);
+          if (user != null &&
+              user.fullName != null &&
+              user.fullName!.isNotEmpty) {
+            namesMap[userId] = user.fullName!;
+          }
+        } catch (_) {
+          // Bỏ qua lỗi kết nối đơn lẻ
         }
-      } catch (_) {
-        // Bỏ qua lỗi kết nối đơn lẻ
-      }
-    }));
+      }),
+    );
 
     if (mounted) {
       setState(() {
@@ -135,10 +139,18 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                             imageUrl: _blog!.fullImageUrl!,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => const Center(
-                              child: Icon(Icons.image, size: 64, color: Colors.grey),
+                              child: Icon(
+                                Icons.image,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
                             ),
                             errorWidget: (context, url, error) => const Center(
-                              child: Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                              child: Icon(
+                                Icons.broken_image,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
                             ),
                           )
                         : const Center(
@@ -189,8 +201,10 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                         // Meta
                         Row(
                           children: [
-                            if ((_blog!.authorId != null && _userNames.containsKey(_blog!.authorId)) || 
-                                (_blog!.authorName != null && _blog!.authorName!.isNotEmpty)) ...[
+                            if ((_blog!.authorId != null &&
+                                    _userNames.containsKey(_blog!.authorId)) ||
+                                (_blog!.authorName != null &&
+                                    _blog!.authorName!.isNotEmpty)) ...[
                               const Icon(
                                 Icons.person_outline_rounded,
                                 size: 14,
@@ -198,7 +212,8 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                _userNames[_blog!.authorId] ?? _blog!.authorName!,
+                                _userNames[_blog!.authorId] ??
+                                    _blog!.authorName!,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppTheme.textHint,
@@ -297,14 +312,20 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
 
   Widget _buildCommentCard(Map<String, dynamic> c) {
     final userId = c['userId']?.toString() ?? c['UserId']?.toString() ?? '';
-    final displayName = _userNames[userId] ?? (userId.isNotEmpty ? userId : 'Người dùng');
-    
+    final displayName =
+        _userNames[userId] ?? (userId.isNotEmpty ? userId : 'Người dùng');
+
     // Check role
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final role = authProvider.role;
-    final isStaffRole = role == 'Admin' || role == 'Manager' || role == 'LabUser' || 
-                        role == 'Receptionist' || role == 'LabBlogger' || 
-                        role == 'Technician' || role == 'Staff';
+    final isStaffRole =
+        role == 'Admin' ||
+        role == 'Manager' ||
+        role == 'LabUser' ||
+        role == 'Receptionist' ||
+        role == 'LabBlogger' ||
+        role == 'Technician' ||
+        role == 'Staff';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -351,7 +372,11 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
           ),
           if (isStaffRole)
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: AppTheme.error, size: 20),
+              icon: const Icon(
+                Icons.delete_outline,
+                color: AppTheme.error,
+                size: 20,
+              ),
               constraints: const BoxConstraints(),
               padding: EdgeInsets.zero,
               onPressed: () async {
@@ -361,10 +386,15 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                     title: const Text('Xóa bình luận'),
                     content: const Text('Bạn có chắc muốn xóa bình luận này?'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Huỷ')),
                       TextButton(
-                        onPressed: () => Navigator.pop(ctx, true), 
-                        style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Huỷ'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.error,
+                        ),
                         child: const Text('Xóa'),
                       ),
                     ],
@@ -373,7 +403,9 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                 if (confirm == true) {
                   final commentId = c['commentId'] ?? c['id'];
                   if (commentId != null) {
-                    final success = await BlogRepository.deleteComment(commentId);
+                    final success = await BlogRepository.deleteComment(
+                      commentId,
+                    );
                     if (success) {
                       _loadBlog();
                     }
